@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
   - name: Framework documentation
-    url: https://github.com/OWNER/REPO/tree/main/docs
+    url: https://github.com/AbdurRafayBaig/Ui-Test-Automation-Framework/tree/main/docs
     about: Setup, writing tests, architecture and GitHub workflow guides

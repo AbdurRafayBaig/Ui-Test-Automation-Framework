@@ -1,8 +1,8 @@
 # Web UI Test Automation Framework
 
-[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
-[![Cross-browser](https://github.com/OWNER/REPO/actions/workflows/cross-browser.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/cross-browser.yml)
-[![Allure report](https://img.shields.io/badge/Allure-latest%20report-orange)](https://OWNER.github.io/REPO/)
+[![CI](https://github.com/AbdurRafayBaig/Ui-Test-Automation-Framework/actions/workflows/ci.yml/badge.svg)](https://github.com/AbdurRafayBaig/Ui-Test-Automation-Framework/actions/workflows/ci.yml)
+[![Cross-browser](https://github.com/AbdurRafayBaig/Ui-Test-Automation-Framework/actions/workflows/cross-browser.yml/badge.svg)](https://github.com/AbdurRafayBaig/Ui-Test-Automation-Framework/actions/workflows/cross-browser.yml)
+[![Allure report](https://img.shields.io/badge/Allure-latest%20report-orange)](https://abdurrafaybaig.github.io/Ui-Test-Automation-Framework/)
 
 A BDD test automation framework for web UIs, built with **Playwright**, **Cucumber (Gherkin)**, **TypeScript** and **Allure**. Test data can come from **Excel, a SQL database (SQLite), Redis or JSON**. The code follows the **Page Object Model**.
 

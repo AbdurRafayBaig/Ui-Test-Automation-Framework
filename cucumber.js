@@ -6,7 +6,7 @@ require('dotenv').config({ quiet: true });
 
 const parallel = Number(process.env.PARALLEL || 1);
 const retry = Number(process.env.RETRY || 0);
-const repo = process.env.GITHUB_REPOSITORY || 'your-org/ui-test-automation-framework';
+const repo = process.env.GITHUB_REPOSITORY || 'AbdurRafayBaig/Ui-Test-Automation-Framework';
 
 const common = {
   // No 'paths' here on purpose: cucumber's default (features/**/*.feature) is used, and a path
