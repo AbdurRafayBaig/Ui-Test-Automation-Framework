@@ -1,9 +1,12 @@
 import type { Locator, Page } from 'playwright';
 import type { Logger } from '../../core/Logger';
+import { config } from '../../config/config';
 import { BasePage } from '../BasePage';
 
 export class ToolshopProductPage extends BasePage {
   protected readonly app = 'toolshop' as const;
+  /** Toolshop's API can take 15s+ to answer under load (Cloudflare-fronted demo), so allow the navigation timeout. */
+  protected override readonly actionTimeout = config.timeouts.navigation;
   protected readonly path = '/product';
 
   private readonly name: Locator;
@@ -26,7 +29,7 @@ export class ToolshopProductPage extends BasePage {
   }
 
   override async waitUntilLoaded(): Promise<void> {
-    await this.addToCartButton.waitFor({ state: 'visible' });
+    await this.addToCartButton.waitFor({ state: 'visible', timeout: this.actionTimeout });
   }
 
   async productName(): Promise<string> {
@@ -44,7 +47,7 @@ export class ToolshopProductPage extends BasePage {
 
   async increaseQuantity(times = 1): Promise<void> {
     await this.step(`Increase quantity ${times} time(s)`, async () => {
-      for (let i = 0; i < times; i++) await this.increaseButton.click();
+      for (let i = 0; i < times; i++) await this.increaseButton.click({ timeout: this.actionTimeout });
     });
   }
 

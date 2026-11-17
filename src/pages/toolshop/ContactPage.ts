@@ -1,5 +1,6 @@
 import type { Locator, Page } from 'playwright';
 import type { Logger } from '../../core/Logger';
+import { config } from '../../config/config';
 import { BasePage } from '../BasePage';
 
 export interface ContactForm {
@@ -21,6 +22,8 @@ const FIELDS: Record<keyof ContactForm, string> = {
 
 export class ContactPage extends BasePage {
   protected readonly app = 'toolshop' as const;
+  /** Toolshop's API can take 15s+ to answer under load (Cloudflare-fronted demo), so allow the navigation timeout. */
+  protected override readonly actionTimeout = config.timeouts.navigation;
   protected readonly path = '/contact';
 
   private readonly submitButton: Locator;
@@ -31,7 +34,7 @@ export class ContactPage extends BasePage {
   }
 
   override async waitUntilLoaded(): Promise<void> {
-    await this.submitButton.waitFor({ state: 'visible' });
+    await this.submitButton.waitFor({ state: 'visible', timeout: this.actionTimeout });
   }
 
   async fillForm(form: ContactForm): Promise<void> {
@@ -40,7 +43,7 @@ export class ContactPage extends BasePage {
         if (value === undefined || value === '') continue;
         const input = this.page.locator(`[data-test="${FIELDS[field]}"]`);
         if (field === 'subject') {
-          await input.selectOption({ label: value });
+          await input.selectOption({ label: value }, { timeout: this.actionTimeout });
         } else {
           await this.fill(input, value, field);
         }

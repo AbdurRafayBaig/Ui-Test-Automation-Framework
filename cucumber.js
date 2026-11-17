@@ -9,7 +9,8 @@ const retry = Number(process.env.RETRY || 0);
 const repo = process.env.GITHUB_REPOSITORY || 'your-org/ui-test-automation-framework';
 
 const common = {
-  paths: ['features/**/*.feature'],
+  // No 'paths' here on purpose: cucumber's default (features/**/*.feature) is used, and a path
+  // given on the CLI (e.g. features/x.feature:10) then REPLACES it instead of being merged.
   requireModule: ['tsx/cjs'],
   require: ['src/core/World.ts', 'src/core/hooks.ts', 'src/steps/**/*.ts'],
   format: [

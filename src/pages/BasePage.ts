@@ -16,6 +16,11 @@ export abstract class BasePage {
   protected abstract readonly app: AppName;
   /** Path relative to the application's base URL. */
   protected abstract readonly path: string;
+  /**
+   * Timeout for this page's own actions and load checks. `undefined` means the global
+   * action timeout from config. Pages of slow applications override it.
+   */
+  protected readonly actionTimeout: number | undefined = undefined;
 
   constructor(
     protected readonly page: Page,
@@ -55,13 +60,13 @@ export abstract class BasePage {
 
   protected async fill(locator: Locator, value: string, label: string, secret = false): Promise<void> {
     await this.step(`Type "${secret ? '*****' : value}" into ${label}`, async () => {
-      await locator.fill(value);
+      await locator.fill(value, { timeout: this.actionTimeout });
     });
   }
 
   protected async click(locator: Locator, label: string): Promise<void> {
     await this.step(`Click ${label}`, async () => {
-      await locator.click();
+      await locator.click({ timeout: this.actionTimeout });
     });
   }
 

@@ -31,7 +31,7 @@ npm test                                   # everything (except @wip)
 npm run test:smoke                         # smoke suite
 npx cucumber-js --tags "@saucedemo and @negative"
 npx cucumber-js features/toolshop/search.feature
-npx cucumber-js features/saucedemo/login.feature:18   # one scenario by line
+npx cucumber-js features/saucedemo/login.feature:11   # one scenario by line
 npm run test:headed                        # watch it run
 ```
 

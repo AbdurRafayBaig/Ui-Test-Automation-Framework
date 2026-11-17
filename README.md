@@ -55,7 +55,7 @@ npm run report                  # generate + open the Allure report
 | `npm run test:parallel` | 4 parallel workers |
 | `npm run test:rerun` | Re-run only the scenarios that failed last time |
 | `npx cucumber-js --tags "@cart and not @negative"` | Any tag expression |
-| `npx cucumber-js features/saucedemo/login.feature:10` | One scenario by line number |
+| `npx cucumber-js features/saucedemo/login.feature:11` | One scenario by line number |
 | `npm run report` | Generate and open the Allure report |
 | `npm run typecheck` / `npm run lint:features` | Static checks run in CI |
 
@@ -151,6 +151,7 @@ Local run (Windows 11, Node 24, 4 parallel workers, no retries):
 | WebKit | Runs in CI (Linux/macOS). WebKit on Windows needs extra system DLLs (see [SETUP](docs/SETUP.md)) |
 
 - The Firefox gaps are always in the 3 *secure login* scenarios on the-internet.herokuapp.com. That free Heroku app sometimes drops the session or answers slowly in Firefox, while the same steps pass in Chromium. This is a problem with the site under test, not the framework. CI runs with `RETRY=1`, and Allure shows the retry history.
+- Toolshop (practicesoftwaretesting.com) sits behind Cloudflare. After many back-to-back runs with several workers from one IP it slows down a lot (pages take 15–60 s), and Toolshop scenarios then time out. Its page objects already allow the longer navigation timeout (45 s). If it still happens, wait a few minutes or run with fewer workers (`PARALLEL=1`). With a short pause between runs, all Toolshop scenarios pass.
 - All three demo applications are public websites. Their data (e.g. stock levels on Toolshop) can change, so tests avoid hard-coding live values where possible.
 
 ## License

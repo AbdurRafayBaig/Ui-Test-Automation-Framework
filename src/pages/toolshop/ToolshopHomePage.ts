@@ -1,5 +1,6 @@
 import type { Locator, Page } from 'playwright';
 import type { Logger } from '../../core/Logger';
+import { config } from '../../config/config';
 import { BasePage } from '../BasePage';
 
 /** Sort labels exactly as rendered by the Toolshop sort dropdown. */
@@ -8,6 +9,8 @@ export type ToolshopSort = 'Name (A - Z)' | 'Name (Z - A)' | 'Price (High - Low)
 /** Product catalogue + search on practicesoftwaretesting.com ("Toolshop"). */
 export class ToolshopHomePage extends BasePage {
   protected readonly app = 'toolshop' as const;
+  /** Toolshop's API can take 15s+ to answer under load (Cloudflare-fronted demo), so allow the navigation timeout. */
+  protected override readonly actionTimeout = config.timeouts.navigation;
   protected readonly path = '/';
 
   private readonly searchInput: Locator;
@@ -34,32 +37,34 @@ export class ToolshopHomePage extends BasePage {
   }
 
   override async waitUntilLoaded(): Promise<void> {
-    await this.productNames.first().waitFor({ state: 'visible' });
+    await this.productNames.first().waitFor({ state: 'visible', timeout: this.actionTimeout });
+    await this.searchInput.waitFor({ state: 'visible', timeout: this.actionTimeout });
+    await this.waitForStableResults();
   }
 
   async search(term: string): Promise<void> {
     await this.step(`Search for "${term}"`, async () => {
       await this.fill(this.searchInput, term, 'search box');
-      await this.reloadingProducts(() => this.searchButton.click(), '/products/search');
+      await this.reloadingProducts(() => this.searchButton.click({ timeout: this.actionTimeout }), '/products/search');
     });
   }
 
   async clearSearch(): Promise<void> {
     await this.step('Reset the search', async () => {
-      await this.reloadingProducts(() => this.searchReset.click(), '/products');
+      await this.reloadingProducts(() => this.searchReset.click({ timeout: this.actionTimeout }), '/products');
     });
   }
 
   async sortBy(label: ToolshopSort): Promise<void> {
     await this.step(`Sort products by "${label}"`, async () => {
-      await this.reloadingProducts(() => this.sortSelect.selectOption({ label }).then(() => undefined), '/products');
+      await this.reloadingProducts(() => this.sortSelect.selectOption({ label }, { timeout: this.actionTimeout }).then(() => undefined), '/products');
     });
   }
 
   async filterByCategory(category: string): Promise<void> {
     await this.step(`Filter by category "${category}"`, async () => {
       const checkbox = this.filters.getByLabel(category, { exact: true });
-      await this.reloadingProducts(() => checkbox.check(), '/products');
+      await this.reloadingProducts(() => checkbox.check({ timeout: this.actionTimeout }), '/products');
     });
   }
 
@@ -90,8 +95,8 @@ export class ToolshopHomePage extends BasePage {
         .locator('a[data-test^="product-"]')
         .filter({ hasNot: this.page.locator('[data-test="out-of-stock"]') })
         .first();
-      const name = (await card.locator('[data-test="product-name"]').innerText()).trim();
-      await card.click();
+      const name = (await card.locator('[data-test="product-name"]').innerText({ timeout: this.actionTimeout })).trim();
+      await card.click({ timeout: this.actionTimeout });
       this.logger.info(`Opened in-stock product "${name}"`);
       return name;
     });
@@ -99,7 +104,7 @@ export class ToolshopHomePage extends BasePage {
 
   async openProduct(name: string): Promise<void> {
     await this.step(`Open product "${name}"`, async () => {
-      await this.productNames.filter({ hasText: name }).first().click();
+      await this.productNames.filter({ hasText: name }).first().click({ timeout: this.actionTimeout });
     });
   }
 
@@ -111,7 +116,7 @@ export class ToolshopHomePage extends BasePage {
     // Note: the Toolshop API uses the HTTP QUERY method, so we match on the URL only.
     const response = this.page.waitForResponse(
       (r) => new URL(r.url()).pathname === apiPath && r.request().resourceType() !== 'document',
-      { timeout: 30000 },
+      { timeout: this.actionTimeout },
     );
     await action();
     await (await response).finished();
@@ -121,7 +126,7 @@ export class ToolshopHomePage extends BasePage {
   /** Waits until the rendered result list stops changing (Angular re-render finished). */
   private async waitForStableResults(): Promise<void> {
     const results = this.page.locator('[data-test="product-name"], [data-test="no-results"]');
-    await results.first().waitFor();
+    await results.first().waitFor({ timeout: this.actionTimeout });
     let previous = '';
     for (let i = 0; i < 20; i++) {
       const current = (await results.allInnerTexts()).join('|');
