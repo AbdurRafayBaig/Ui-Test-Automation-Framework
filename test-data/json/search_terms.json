@@ -1,0 +1,6 @@
+[
+  { "key": "pliers", "term": "pliers", "min_results": "3" },
+  { "key": "hammer", "term": "hammer", "min_results": "2" },
+  { "key": "saw", "term": "saw", "min_results": "2" },
+  { "key": "drill", "term": "drill", "min_results": "1" }
+]
