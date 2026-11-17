@@ -1,0 +1,14 @@
+{
+  "name": "staging",
+  "apps": {
+    "saucedemo": "https://www.saucedemo.com",
+    "toolshop": "https://with-bugs.practicesoftwaretesting.com",
+    "theinternet": "https://the-internet.herokuapp.com"
+  },
+  "timeouts": {
+    "step": 90000,
+    "action": 20000,
+    "navigation": 60000,
+    "expect": 15000
+  }
+}

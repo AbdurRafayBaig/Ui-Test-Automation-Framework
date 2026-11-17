@@ -1,0 +1,14 @@
+{
+  "name": "qa",
+  "apps": {
+    "saucedemo": "https://www.saucedemo.com",
+    "toolshop": "https://practicesoftwaretesting.com",
+    "theinternet": "https://the-internet.herokuapp.com"
+  },
+  "timeouts": {
+    "step": 60000,
+    "action": 15000,
+    "navigation": 45000,
+    "expect": 10000
+  }
+}
