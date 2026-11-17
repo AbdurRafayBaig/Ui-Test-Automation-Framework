@@ -1,0 +1,38 @@
+name: Bug / failing test
+description: A test fails, is flaky, or the framework behaves incorrectly
+labels: [bug, triage]
+body:
+  - type: input
+    id: scenario
+    attributes:
+      label: Scenario or component
+      placeholder: features/saucedemo/checkout.feature:16 - "Complete a purchase end to end"
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of problem?
+      options:
+        - Test fails consistently
+        - Test is flaky
+        - Bug in the application under test
+        - Framework bug (hooks, config, data, reporting)
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Paste the error message. Attach the Allure screenshot / trace if possible.
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      placeholder: BROWSER=firefox TEST_ENV=qa, Windows 11, Node 24
+  - type: input
+    id: run
+    attributes:
+      label: Link to the CI run / Allure report

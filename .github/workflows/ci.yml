@@ -1,0 +1,174 @@
+# Main pipeline.
+#   - Pull request  -> static checks + smoke suite (fast feedback before merge)
+#   - Push to main  -> (i.e. every merged branch) static checks + FULL regression suite,
+#                      then publish the Allure report to GitHub Pages ("deploy")
+#   - Push to develop -> static checks + full suite (no deploy)
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      browser:
+        description: Browser to run
+        type: choice
+        options: [chromium, firefox, webkit]
+        default: chromium
+      tags:
+        description: Cucumber tag expression
+        default: 'not @wip'
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '24'
+  FORCE_COLOR: '1'
+
+jobs:
+  static-checks:
+    name: Type-check & Gherkin lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: TypeScript type-check
+        run: npm run typecheck
+      - name: Every Gherkin step has a step definition (dry run, strict)
+        run: npm run lint:features
+
+  ui-tests:
+    name: UI tests (${{ github.event.inputs.browser || 'chromium' }})
+    needs: static-checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      # Real Redis server so the Redis data provider is exercised in CI.
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      BROWSER: ${{ github.event.inputs.browser || 'chromium' }}
+      HEADLESS: 'true'
+      PARALLEL: '4'
+      RETRY: '1' # public demo sites are occasionally slow; retry once before failing
+      REDIS_URL: redis://localhost:6379
+      TRACE: on-failure
+      SCREENSHOT: on-failure
+      VIDEO: on-failure
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Install Playwright browser + OS deps
+        run: npx playwright install --with-deps ${{ env.BROWSER }}
+
+      - name: Seed test data (Excel, SQLite, Redis)
+        run: |
+          npm run data:seed
+          npm run data:seed:redis
+
+      - name: Choose suite
+        id: suite
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "args=-p smoke" >> "$GITHUB_OUTPUT"
+          elif [ -n "${{ github.event.inputs.tags }}" ]; then
+            echo "args=--tags \"${{ github.event.inputs.tags }}\"" >> "$GITHUB_OUTPUT"
+          else
+            echo "args=-p regression" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run tests
+        run: npx cucumber-js ${{ steps.suite.outputs.args }}
+
+      - name: Restore Allure history
+        if: always()
+        uses: actions/cache/restore@v4
+        with:
+          path: allure-history
+          key: allure-history-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: allure-history-${{ github.ref_name }}-
+
+      - name: Generate Allure report
+        if: always()
+        run: npx allure generate allure-results
+
+      - name: Save Allure history
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: allure-history
+          key: allure-history-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Publish JUnit results to the job summary
+        if: always()
+        uses: dorny/test-reporter@v1
+        continue-on-error: true
+        with:
+          name: Cucumber results (${{ env.BROWSER }})
+          path: reports/junit.xml
+          reporter: java-junit
+
+      - name: Upload Allure report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-${{ env.BROWSER }}
+          path: allure-report
+          retention-days: 14
+
+      - name: Upload raw results, traces and videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts-${{ env.BROWSER }}
+          path: |
+            allure-results
+            reports
+          retention-days: 7
+
+      - name: Upload report for GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && always()
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: allure-report
+
+  deploy-report:
+    name: Deploy Allure report to GitHub Pages
+    needs: ui-tests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && always() && needs.ui-tests.result != 'skipped'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

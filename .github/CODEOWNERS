@@ -1,0 +1,16 @@
+# Every PR needs a review from a code owner (enable "Require review from Code Owners"
+# in branch protection). Replace the placeholders with your GitHub usernames.
+
+*                     @MEMBER_1_GITHUB @MEMBER_2_GITHUB
+
+# Framework core and CI - Member 1
+/src/core/            @MEMBER_1_GITHUB
+/src/config/          @MEMBER_1_GITHUB
+/src/data/            @MEMBER_1_GITHUB
+/.github/             @MEMBER_1_GITHUB
+/cucumber.js          @MEMBER_1_GITHUB
+
+# Page objects, features and steps - Member 2
+/src/pages/           @MEMBER_2_GITHUB
+/src/steps/           @MEMBER_2_GITHUB
+/features/            @MEMBER_2_GITHUB

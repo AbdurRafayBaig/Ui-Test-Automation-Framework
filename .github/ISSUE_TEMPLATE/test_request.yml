@@ -1,0 +1,41 @@
+name: New test scenario
+description: Request automation coverage for a user flow
+labels: [test, enhancement]
+body:
+  - type: input
+    id: app
+    attributes:
+      label: Application / area
+      placeholder: SauceDemo - checkout
+    validations:
+      required: true
+  - type: textarea
+    id: gherkin
+    attributes:
+      label: Scenario in Gherkin
+      render: gherkin
+      value: |
+        Scenario: <title>
+          Given ...
+          When ...
+          Then ...
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Suite
+      options: ['@smoke', '@regression']
+  - type: dropdown
+    id: data
+    attributes:
+      label: Test data source
+      options: [Inline Examples table, Excel, SQLite, Redis, JSON]
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Done when
+      value: |
+        - [ ] Feature file + steps + page object updates
+        - [ ] Passes on chromium and firefox
+        - [ ] Visible in the Allure report with correct epic/feature labels

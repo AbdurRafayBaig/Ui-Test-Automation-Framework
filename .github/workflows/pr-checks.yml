@@ -1,0 +1,50 @@
+# Pull-request hygiene: conventional title, linked issue, size label.
+name: PR checks
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  title-and-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Conventional-commit style title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if ! echo "$TITLE" | grep -Eq '^(feat|fix|test|docs|refactor|chore|ci|perf)(\([a-z0-9-]+\))?: .+'; then
+            echo "::error::PR title must look like 'feat(cart): add remove-item scenario' (see docs/GITHUB_WORKFLOW.md)"
+            exit 1
+          fi
+      - name: Body links an issue
+        if: github.actor != 'dependabot[bot]'
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if ! echo "$BODY" | grep -Eiq '(close[sd]?|fix(e[sd])?|resolve[sd]?|refs?) #[0-9]+'; then
+            echo "::warning::No linked issue found. Add 'Closes #<issue>' to the PR description."
+          fi
+
+  size-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label PR by size
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          CHANGES: ${{ github.event.pull_request.additions }}
+          DELETIONS: ${{ github.event.pull_request.deletions }}
+        run: |
+          TOTAL=$((CHANGES + DELETIONS))
+          if   [ "$TOTAL" -lt 50 ];  then SIZE="size/S"
+          elif [ "$TOTAL" -lt 250 ]; then SIZE="size/M"
+          elif [ "$TOTAL" -lt 800 ]; then SIZE="size/L"
+          else SIZE="size/XL"; fi
+          gh label create "$SIZE" --repo "$REPO" --color ededed --force >/dev/null 2>&1 || true
+          gh pr edit "$PR" --repo "$REPO" --remove-label size/S,size/M,size/L,size/XL >/dev/null 2>&1 || true
+          gh pr edit "$PR" --repo "$REPO" --add-label "$SIZE"

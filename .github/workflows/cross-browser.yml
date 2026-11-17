@@ -1,0 +1,58 @@
+# Cross-browser / cross-platform regression.
+# Runs nightly and on demand: every browser engine on Linux, plus Chromium on
+# Windows and macOS, plus a mobile-emulation run - proving the framework is
+# browser- and platform-agnostic.
+name: Cross-browser regression
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # every night at 02:00 UTC
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  matrix:
+    name: ${{ matrix.browser }} on ${{ matrix.os }}${{ matrix.device && format(' ({0})', matrix.device) || '' }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, browser: chromium }
+          - { os: ubuntu-latest, browser: firefox }
+          - { os: ubuntu-latest, browser: webkit }
+          - { os: windows-latest, browser: chromium }
+          - { os: macos-latest, browser: webkit }
+          - { os: ubuntu-latest, browser: chromium, device: 'Pixel 7', tags: '@smoke and @saucedemo' }
+    env:
+      BROWSER: ${{ matrix.browser }}
+      DEVICE: ${{ matrix.device }}
+      PARALLEL: '3'
+      RETRY: '1'
+      HEADLESS: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: npm run data:seed
+      - name: Run regression (Redis uses the built-in in-memory store here)
+        shell: bash
+        run: npx cucumber-js --tags "${{ matrix.tags || 'not @wip' }}"
+      - name: Generate Allure report
+        if: always()
+        run: npx allure generate allure-results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-${{ matrix.os }}-${{ matrix.browser }}${{ matrix.device && '-mobile' || '' }}
+          path: allure-report
+          retention-days: 14
