@@ -1,0 +1,64 @@
+{
+  "name": "ui-test-automation-framework",
+  "version": "1.0.0",
+  "description": "Web UI test automation framework: Playwright + Cucumber (BDD/Gherkin) + Allure, with Excel / SQLite / Redis / JSON test-data sources and the Page Object Model.",
+  "scripts": {
+    "test": "cucumber-js",
+    "test:smoke": "cucumber-js -p smoke",
+    "test:regression": "cucumber-js -p regression",
+    "test:data": "cucumber-js -p data-driven",
+    "test:wip": "cucumber-js -p wip",
+    "test:rerun": "cucumber-js -p rerun",
+    "test:parallel": "cross-env PARALLEL=4 cucumber-js",
+    "test:chromium": "cross-env BROWSER=chromium cucumber-js",
+    "test:firefox": "cross-env BROWSER=firefox cucumber-js",
+    "test:webkit": "cross-env BROWSER=webkit cucumber-js",
+    "test:mobile": "cross-env DEVICE=\"Pixel 7\" cucumber-js -p smoke",
+    "test:headed": "cross-env HEADLESS=false SLOW_MO=150 cucumber-js",
+    "test:dry": "cucumber-js --dry-run --format progress",
+    "data:seed": "tsx scripts/seed-data.ts",
+    "data:seed:redis": "tsx scripts/seed-data.ts --redis",
+    "report:generate": "allure generate allure-results",
+    "report:open": "allure open allure-report",
+    "report": "npm run report:generate && npm run report:open",
+    "clean": "node -e \"for (const d of ['allure-results','allure-report','reports']) require('fs').rmSync(d,{recursive:true,force:true})\"",
+    "typecheck": "tsc --noEmit",
+    "lint:features": "cucumber-js --dry-run --format summary --strict",
+    "pretest": "npm run clean"
+  },
+  "keywords": [
+    "playwright",
+    "cucumber",
+    "bdd",
+    "gherkin",
+    "allure",
+    "page-object-model",
+    "test-automation"
+  ],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "devDependencies": {
+    "@cucumber/cucumber": "^13.3.0",
+    "@playwright/test": "^1.65.1",
+    "@types/node": "^26.6.6",
+    "allure": "^3.33.0",
+    "allure-cucumberjs": "^3.14.0",
+    "allure-js-commons": "^3.14.0",
+    "cross-env": "^10.1.0",
+    "dotenv": "^18.0.10",
+    "exceljs": "^4.4.0",
+    "ioredis": "^5.11.1",
+    "ioredis-mock": "^8.13.1",
+    "playwright": "^1.65.1",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  },
+  "private": true,
+  "engines": {
+    "node": ">=22.13"
+  }
+}

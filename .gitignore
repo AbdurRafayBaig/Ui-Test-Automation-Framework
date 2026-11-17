@@ -1,0 +1,31 @@
+# dependencies
+node_modules/
+
+# test output (regenerated on every run)
+allure-results/
+allure-report/
+allure-history/
+reports/
+test-results/
+
+# local configuration
+.env
+*.local.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+
+# logs
+*.log
+npm-debug.log*
+
+# SQLite journal files
+test-data/*.db-journal
+
+# course material
+*.pdf
