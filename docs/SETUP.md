@@ -14,8 +14,8 @@ You do **not** need Java (Allure 3 is pure Node), a C++ toolchain (no native mod
 ## 2. Install
 
 ```bash
-git clone https://github.com/OWNER/REPO.git
-cd REPO
+git clone https://github.com/AbdurRafayBaig/Ui-Test-Automation-Framework.git
+cd Ui-Test-Automation-Framework
 npm ci
 npx playwright install            # chromium, firefox, webkit
 # Linux only, first time: npx playwright install-deps
