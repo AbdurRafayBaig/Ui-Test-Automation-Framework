@@ -2,6 +2,10 @@
 # Runs nightly and on demand: every browser engine on Linux, plus Chromium on
 # Windows and macOS, plus a mobile-emulation run - proving the framework is
 # browser- and platform-agnostic.
+#
+# Toolshop runs from a local Docker copy (the public site blocks CI runners with a
+# Cloudflare challenge). Windows and macOS runners cannot start those Linux
+# containers, so they skip the @toolshop scenarios.
 name: Cross-browser regression
 
 on:
@@ -26,8 +30,8 @@ jobs:
           - { os: ubuntu-latest, browser: chromium }
           - { os: ubuntu-latest, browser: firefox }
           - { os: ubuntu-latest, browser: webkit }
-          - { os: windows-latest, browser: chromium }
-          - { os: macos-latest, browser: webkit }
+          - { os: windows-latest, browser: chromium, tags: 'not @wip and not @toolshop' }
+          - { os: macos-latest, browser: webkit, tags: 'not @wip and not @toolshop' }
           - { os: ubuntu-latest, browser: chromium, device: 'Pixel 7', tags: '@smoke and @saucedemo' }
     env:
       BROWSER: ${{ matrix.browser }}
@@ -44,6 +48,9 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: npm run data:seed
+      - name: Start local Toolshop (Docker, Linux only)
+        if: runner.os == 'Linux'
+        uses: ./.github/actions/start-toolshop
       - name: Run regression (Redis uses the built-in in-memory store here)
         shell: bash
         run: npx cucumber-js --tags "${{ matrix.tags || 'not @wip' }}"

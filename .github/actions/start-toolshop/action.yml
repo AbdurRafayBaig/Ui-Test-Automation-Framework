@@ -1,0 +1,43 @@
+name: Start local Toolshop
+description: >
+  Starts the open-source Toolshop app (UI + API + DB) in Docker, seeds its
+  database and points the tests at it by exporting TOOLSHOP_URL.
+runs:
+  using: composite
+  steps:
+    - name: Pull and start containers
+      shell: bash
+      run: docker compose -f ci/toolshop/docker-compose.yml up -d --quiet-pull
+
+    - name: Wait for the database, then migrate and seed
+      shell: bash
+      run: |
+        C="docker compose -f ci/toolshop/docker-compose.yml"
+        for i in $(seq 1 60); do
+          $C exec -T mariadb mysqladmin ping -uroot -proot --silent && break
+          sleep 2
+        done
+        for i in $(seq 1 5); do
+          $C exec -T laravel-api php artisan migrate:fresh --seed --force && break
+          echo "migrate attempt $i failed, retrying"; sleep 5
+        done
+
+    - name: Wait for the API and the UI
+      shell: bash
+      run: |
+        wait_for() {
+          for i in $(seq 1 120); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "$1" || true)
+            if [ "$code" = "200" ]; then echo "$1 is up"; return 0; fi
+            sleep 3
+          done
+          echo "::error::$1 did not come up"
+          docker compose -f ci/toolshop/docker-compose.yml logs --tail 80
+          return 1
+        }
+        wait_for http://localhost:8091/products
+        wait_for http://localhost:4200/
+
+    - name: Point the tests at the local Toolshop
+      shell: bash
+      run: echo "TOOLSHOP_URL=http://localhost:4200" >> "$GITHUB_ENV"

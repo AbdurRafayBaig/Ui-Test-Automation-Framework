@@ -1,0 +1,48 @@
+# Self-hosted Toolshop (https://github.com/testsmith-io/practice-software-testing)
+# for CI runs. The public practicesoftwaretesting.com sits behind a Cloudflare
+# "verify you are human" challenge for data-centre IPs such as GitHub runners,
+# so CI tests against this local copy built from the project's official images.
+#
+#   UI  -> http://localhost:4200
+#   API -> http://localhost:8091
+#
+# Based on the upstream docker-compose.prod.yml (cron and mail services dropped).
+name: toolshop
+
+services:
+  laravel-api:
+    image: testsmith/practice-software-testing-${SPRINT:-sprint5}-api
+    environment:
+      - PHP_OPCACHE_VALIDATE_TIMESTAMPS=1
+      - DB_PORT=3306
+      - DB_HOST=mariadb
+      - host=localhost
+      - DISABLE_LOGGING=true
+    volumes:
+      - laravel-app-code:/var/www
+    depends_on:
+      - mariadb
+
+  angular-ui:
+    image: testsmith/practice-software-testing-${SPRINT:-sprint5}-ui
+    ports:
+      - 4200:4200
+    command: bash -c "ng serve --host 0.0.0.0 --port 4200"
+
+  web:
+    image: testsmith/practice-software-testing-web
+    ports:
+      - 8091:80
+    depends_on:
+      - laravel-api
+
+  mariadb:
+    image: yobasystems/alpine-mariadb:10.6.11
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: user
+      MYSQL_PASSWORD: root
+      MYSQL_DATABASE: toolshop
+
+volumes:
+  laravel-app-code:

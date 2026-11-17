@@ -91,6 +91,11 @@ jobs:
           npm run data:seed
           npm run data:seed:redis
 
+      # practicesoftwaretesting.com shows a Cloudflare "verify you are human" page to
+      # GitHub runners, so the Toolshop scenarios run against a local copy instead.
+      - name: Start local Toolshop (Docker)
+        uses: ./.github/actions/start-toolshop
+
       - name: Choose suite
         id: suite
         run: |
