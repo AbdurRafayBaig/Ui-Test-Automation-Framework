@@ -107,8 +107,9 @@ export class CsvDataProvider implements DataProvider {
   async close() {}
 }
 
-// src/data/DataManager.ts: add one line to the factories map
-['csv', () => new CsvDataProvider('test-data/csv')],
+// src/data/DataManager.ts: add one more case to the switch in create()
+case 'csv':
+  return new CsvDataProvider('test-data/csv');
 ```
 
 Now `| csv | standard |` works in any Examples table, with no step changes.

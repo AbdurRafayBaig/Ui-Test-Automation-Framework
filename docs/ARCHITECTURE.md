@@ -55,7 +55,7 @@ A **new browser context per scenario** gives complete isolation (cookies, local 
 | **Template Method** | `BasePage.open()` → `waitUntilLoaded()` | The navigation algorithm is shared. Each page only overrides "what does loaded mean for me". |
 | **Factory + lazy cache (Flyweight)** | `PageManager` | Steps write `this.pages.cart` and never call `new`. Pages are created only when first used and reused within the scenario. Adding a page is one getter. |
 | **Strategy (via interface)** | `DataProvider` with Excel / SQLite / Redis / JSON | Every source has the same contract (`getAll`, `getByKey`), so steps can switch sources by name (`"excel"` → `"redis"`) without code changes. |
-| **Registry + Singleton** | `DataManager` | One lazily-created connection per source for the whole run. A suite that never touches Redis never connects to it. `DataManager.register()` plugs in new sources at runtime. |
+| **Factory + Singleton** | `DataManager` | A simple `switch` creates the right provider for a source name (`excel`, `sqlite`, `redis`, `json`). Each provider is created once and reused for the whole run, so a suite that never touches Redis never connects to it. |
 | **Dependency Injection (light)** | `World` → `PageManager` → pages receive `page` and `logger` | Pages are easy to construct in isolation and never reach for globals. |
 | **Context Object** | `ScenarioContext` | Typed, per-scenario key/value store for passing data between steps without module-level globals (which would leak between parallel scenarios). |
 | **Immutable configuration** | `config.ts` (`Object.freeze`) | One validated source of truth. A bad value (e.g. `BROWSER=safari`) fails fast with a clear message instead of halfway through a run. |
@@ -93,6 +93,6 @@ Screenplay (actors, tasks, questions) scales very well for huge suites but adds 
 | Add a browser | Add a case to `resolveEngine()` in `BrowserManager.ts` and to the `BrowserName` type |
 | Add an environment | Create `config/environments/<name>.json` and run with `TEST_ENV=<name>` |
 | Add an application | See "Adding a new application" in [WRITING_TESTS.md](WRITING_TESTS.md) |
-| Add a data source | Implement `DataProvider` and register it in `DataManager` ([DATA_SOURCES.md](DATA_SOURCES.md)) |
+| Add a data source | Implement `DataProvider` and add one `case` for it in `DataManager` ([DATA_SOURCES.md](DATA_SOURCES.md)) |
 | Add a report | Add a formatter to `format` in `cucumber.js` |
 | Add API testing (future phase) | Add `src/api/` clients using Playwright's `request` context in the same World. Hooks, data and reporting are reused as they are |

@@ -19,7 +19,7 @@ const common = {
     'html:reports/cucumber-report.html',
     'json:reports/cucumber-report.json',
     'junit:reports/junit.xml',
-    'rerun:reports/rerun.txt',
+    'rerun:reports/@rerun.txt',
     'allure-cucumberjs/reporter',
   ],
   formatOptions: {
@@ -58,7 +58,8 @@ module.exports = {
   regression: { ...common, tags: '(@regression or @smoke) and not @wip' },
   'data-driven': { ...common, tags: '@data-driven and not @wip' },
   /** Re-run only the scenarios that failed in the previous run. */
-  rerun: { ...common, paths: ['@reports/rerun.txt'] },
+  // It reads reports/@rerun.txt (the @ means "a list of failed scenarios"), so it must not also write that file (that would empty it first).
+  rerun: { ...common, paths: ['reports/@rerun.txt'], format: common.format.filter((f) => !f.startsWith('rerun:')) },
   /** Fast feedback while writing new scenarios: tag them @wip and run `npm run test:wip`. */
   wip: { ...common, tags: '@wip', format: ['progress', 'allure-cucumberjs/reporter'] },
 };

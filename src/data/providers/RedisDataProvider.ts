@@ -3,81 +3,62 @@ import { findByKey, type DataProvider, type DataRecord } from '../DataProvider';
 import { seedRedis } from './redisSeed';
 
 /**
- * Reads test data from Redis. Layout (written by `npm run data:seed:redis`):
- *   SET   testdata:<dataset>            -> members are record keys (the index)
- *   HASH  testdata:<dataset>:<key>      -> one record, field -> value
+ * Reads test data from Redis.
  *
- * If REDIS_URL is not set, an in-memory Redis (ioredis-mock) is started and seeded
- * from the JSON fixtures so the suite still runs on machines without a Redis server.
- * CI runs against a real Redis service container.
+ * How the data is stored (written by `npm run data:seed:redis`):
+ *   testdata:users            -> a SET with every record key, e.g. "standard", "locked_out"
+ *   testdata:users:standard   -> a HASH with one record, e.g. { username: ..., password: ... }
+ *
+ * If REDIS_URL is set we connect to that real Redis server (CI does this).
+ * If not, we start a fake in-memory Redis and fill it from the JSON files,
+ * so the tests also run on a laptop without installing Redis.
  */
 export class RedisDataProvider implements DataProvider {
   readonly name = 'redis';
   private client?: Redis;
-  private connecting?: Promise<void>;
 
   constructor(
     private readonly url: string | undefined,
-    private readonly seedDir: string,
-    private readonly prefix = 'testdata',
+    private readonly jsonDir: string,
   ) {}
 
-  get mode(): 'server' | 'in-memory' {
-    return this.url ? 'server' : 'in-memory';
-  }
-
   async connect(): Promise<void> {
-    if (this.client) return;
-    this.connecting ??= this.open();
-    await this.connecting;
-  }
+    if (this.client) return; // already connected
 
-  private async open(): Promise<void> {
     if (this.url) {
-      const client = new Redis(this.url, { lazyConnect: true, maxRetriesPerRequest: 2, connectTimeout: 5000 });
-      try {
-        await client.connect();
-      } catch (err) {
-        client.disconnect();
-        throw new Error(`[redis] Cannot connect to ${this.url}: ${(err as Error).message}`);
-      }
-      this.client = client;
-      return;
+      // A real Redis server
+      this.client = new Redis(this.url, { maxRetriesPerRequest: 2 });
+    } else {
+      // No server: fake in-memory Redis, filled from test-data/json
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const RedisMock = require('ioredis-mock') as typeof Redis;
+      this.client = new RedisMock();
+      await seedRedis(this.client, this.jsonDir);
     }
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const RedisMock = require('ioredis-mock') as typeof Redis;
-    const mock = new RedisMock();
-    await seedRedis(mock, this.seedDir, this.prefix);
-    this.client = mock;
   }
 
   async getAll(dataset: string): Promise<DataRecord[]> {
     await this.connect();
-    const keys = (await this.client!.smembers(`${this.prefix}:${dataset}`)).sort();
+    const keys = await this.client!.smembers(`testdata:${dataset}`);
     if (keys.length === 0) {
-      throw new Error(`[redis] Dataset "${dataset}" is empty or missing. Run "npm run data:seed:redis".`);
+      throw new Error(`[redis] Dataset "${dataset}" is empty. Run "npm run data:seed:redis".`);
     }
-    const pipeline = this.client!.pipeline();
-    keys.forEach((key) => pipeline.hgetall(`${this.prefix}:${dataset}:${key}`));
-    const results = (await pipeline.exec()) ?? [];
-    return results.map(([err, value]) => {
-      if (err) throw err;
-      return value as DataRecord;
-    });
+
+    const records: DataRecord[] = [];
+    for (const key of keys.sort()) {
+      records.push(await this.client!.hgetall(`testdata:${dataset}:${key}`));
+    }
+    return records;
   }
 
   async getByKey(dataset: string, key: string): Promise<DataRecord> {
-    await this.connect();
-    const record = await this.client!.hgetall(`${this.prefix}:${dataset}:${key}`);
-    if (record && Object.keys(record).length > 0) return record;
     return findByKey(await this.getAll(dataset), key, this.name, dataset);
   }
 
   async close(): Promise<void> {
     if (this.client) {
-      await this.client.quit().catch(() => this.client?.disconnect());
+      await this.client.quit();
+      this.client = undefined;
     }
-    this.client = undefined;
-    this.connecting = undefined;
   }
 }

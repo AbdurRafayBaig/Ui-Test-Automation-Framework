@@ -102,7 +102,7 @@ Other outputs written on every run, in `reports/`:
 - `cucumber-report.html`: single-page Cucumber report
 - `cucumber-report.json`: machine-readable results
 - `junit.xml`: for CI test-summary widgets
-- `rerun.txt`: failed scenarios, used by `npm run test:rerun`
+- `@rerun.txt`: failed scenarios, used by `npm run test:rerun`
 - `traces/*.zip`: open with `npx playwright show-trace reports/traces/<file>.zip`
 
 ## 7. Troubleshooting
@@ -111,6 +111,6 @@ Other outputs written on every run, in `reports/`:
 |---|---|
 | `Workbook not found` / `Database not found` | Run `npm run data:seed` |
 | `Executable doesn't exist ... ms-playwright` | Run `npx playwright install` |
-| `[redis] Cannot connect to ...` | Start Redis or unset `REDIS_URL` to use the in-memory store |
+| Redis error `ECONNREFUSED` | Start Redis or unset `REDIS_URL` to use the in-memory store |
 | `Undefined step` | Run `npm run lint:features`. It prints a ready-to-paste snippet |
 | Timeouts against demo sites | They are public and sometimes slow. Use `RETRY=1`, or raise the timeouts in `config/environments/qa.json` |

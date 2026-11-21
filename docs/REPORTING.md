@@ -45,7 +45,7 @@ npm run report           # allure generate + allure open
 - `cucumber-report.html`: self-contained single page, easy to email
 - `cucumber-report.json`: for custom dashboards
 - `junit.xml`: shown in the GitHub Actions job summary (dorny/test-reporter)
-- `rerun.txt`: failed scenarios for `npm run test:rerun`
+- `@rerun.txt`: failed scenarios for `npm run test:rerun`
 
 ## In CI
 

@@ -5,53 +5,64 @@ import { JsonDataProvider } from './providers/JsonDataProvider';
 import { RedisDataProvider } from './providers/RedisDataProvider';
 import { SqliteDataProvider } from './providers/SqliteDataProvider';
 
-type ProviderFactory = () => DataProvider;
-
 /**
- * Registry + factory for test-data sources (Factory & Singleton patterns).
- * Providers are created lazily the first time a step asks for them and reused
- * for the rest of the run, so a suite that never touches Redis never connects to it.
+ * One place to get test data from any source.
+ *
+ *   DataManager.getRecord('excel', 'users', 'standard')
+ *   DataManager.getRecords('redis', 'products')
+ *
+ * Each source is created the first time it is asked for and then reused,
+ * so we open the Excel file / database / Redis connection only once per run.
  */
 export class DataManager {
-  private static readonly factories = new Map<string, ProviderFactory>([
-    ['excel', () => new ExcelDataProvider(config.data.excelFile)],
-    ['sqlite', () => new SqliteDataProvider(config.data.sqliteFile)],
-    ['db', () => DataManager.get('sqlite')], // friendly alias
-    ['redis', () => new RedisDataProvider(config.data.redisUrl, config.data.jsonDir)],
-    ['json', () => new JsonDataProvider(config.data.jsonDir)],
-  ]);
-  private static readonly instances = new Map<string, DataProvider>();
+  /** Sources that are already open, e.g. { excel: ExcelDataProvider }. */
+  private static providers: Record<string, DataProvider> = {};
 
-  /** Plug in a custom source at runtime, e.g. DataManager.register('csv', () => new CsvProvider()). */
-  static register(name: string, factory: ProviderFactory): void {
-    this.factories.set(name.toLowerCase(), factory);
-    this.instances.delete(name.toLowerCase());
-  }
-
+  /** Returns the provider for a source name, creating it on first use. */
   static get(source: string): DataProvider {
     const name = source.toLowerCase();
-    const existing = this.instances.get(name);
-    if (existing) return existing;
-    const factory = this.factories.get(name);
-    if (!factory) {
-      throw new Error(`Unknown data source "${source}". Registered: ${[...this.factories.keys()].join(', ')}`);
+    if (!this.providers[name]) {
+      this.providers[name] = this.create(name);
     }
-    const provider = factory();
-    this.instances.set(name, provider);
-    return provider;
+    return this.providers[name];
   }
 
+  /** Creates a new provider. To add a new data source, add one more `case` here. */
+  private static create(name: string): DataProvider {
+    switch (name) {
+      case 'excel':
+        return new ExcelDataProvider(config.data.excelFile);
+      case 'sqlite':
+      case 'db':
+        return new SqliteDataProvider(config.data.sqliteFile);
+      case 'redis':
+        return new RedisDataProvider(config.data.redisUrl, config.data.jsonDir);
+      case 'json':
+        return new JsonDataProvider(config.data.jsonDir);
+      default:
+        throw new Error(`Unknown data source "${name}". Use excel, sqlite, db, redis or json.`);
+    }
+  }
+
+  /** One record, found by its `key` column. */
   static async getRecord(source: string, dataset: string, key: string): Promise<DataRecord> {
     return this.get(source).getByKey(dataset, key);
   }
 
+  /** Every record in a dataset (sheet / table / JSON file). */
   static async getRecords(source: string, dataset: string): Promise<DataRecord[]> {
     return this.get(source).getAll(dataset);
   }
 
+  /** Closes every open source. Called once after all tests have finished. */
   static async closeAll(): Promise<void> {
-    const unique = new Set(this.instances.values());
-    await Promise.all([...unique].map((p) => p.close().catch(() => undefined)));
-    this.instances.clear();
+    for (const provider of Object.values(this.providers)) {
+      try {
+        await provider.close();
+      } catch {
+        // ignore errors while closing; the run is already over
+      }
+    }
+    this.providers = {};
   }
 }
