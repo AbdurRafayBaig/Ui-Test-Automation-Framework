@@ -9,7 +9,7 @@ export type ToolshopSort = 'Name (A - Z)' | 'Name (Z - A)' | 'Price (High - Low)
 /** Product catalogue + search on practicesoftwaretesting.com ("Toolshop"). */
 export class ToolshopHomePage extends BasePage {
   protected readonly app = 'toolshop' as const;
-  /** Toolshop's API can take 15s+ to answer under load (Cloudflare-fronted demo), so allow the navigation timeout. */
+  /** Toolshop is slow sometimes (15s+), so its actions get the longer navigation timeout. */
   protected override readonly actionTimeout = config.timeouts.navigation;
   protected readonly path = '/';
 
@@ -39,32 +39,32 @@ export class ToolshopHomePage extends BasePage {
   override async waitUntilLoaded(): Promise<void> {
     await this.productNames.first().waitFor({ state: 'visible', timeout: this.actionTimeout });
     await this.searchInput.waitFor({ state: 'visible', timeout: this.actionTimeout });
-    await this.waitForStableResults();
+    await this.page.waitForLoadState('networkidle', { timeout: this.actionTimeout });
   }
 
   async search(term: string): Promise<void> {
     await this.step(`Search for "${term}"`, async () => {
       await this.fill(this.searchInput, term, 'search box');
-      await this.reloadingProducts(() => this.searchButton.click({ timeout: this.actionTimeout }), '/products/search');
+      await this.doAndWaitForProducts(() => this.searchButton.click({ timeout: this.actionTimeout }), '/products/search');
     });
   }
 
   async clearSearch(): Promise<void> {
     await this.step('Reset the search', async () => {
-      await this.reloadingProducts(() => this.searchReset.click({ timeout: this.actionTimeout }), '/products');
+      await this.doAndWaitForProducts(() => this.searchReset.click({ timeout: this.actionTimeout }), '/products');
     });
   }
 
   async sortBy(label: ToolshopSort): Promise<void> {
     await this.step(`Sort products by "${label}"`, async () => {
-      await this.reloadingProducts(() => this.sortSelect.selectOption({ label }, { timeout: this.actionTimeout }).then(() => undefined), '/products');
+      await this.doAndWaitForProducts(() => this.sortSelect.selectOption({ label }, { timeout: this.actionTimeout }), '/products');
     });
   }
 
   async filterByCategory(category: string): Promise<void> {
     await this.step(`Filter by category "${category}"`, async () => {
       const checkbox = this.filters.getByLabel(category, { exact: true });
-      await this.reloadingProducts(() => checkbox.check({ timeout: this.actionTimeout }), '/products');
+      await this.doAndWaitForProducts(() => checkbox.check({ timeout: this.actionTimeout }), '/products');
     });
   }
 
@@ -109,30 +109,18 @@ export class ToolshopHomePage extends BasePage {
   }
 
   /**
-   * The catalogue is an Angular SPA that re-renders after an API call. Waiting for
-   * that response (instead of a fixed sleep) keeps the tests both fast and stable.
+   * Toolshop gets its product list from the server. After a search, sort or filter:
+   *   1. we start listening for the server's answer,
+   *   2. we do the action (click / select / check),
+   *   3. we wait for the answer, then for the page to finish loading.
+   * This is better than a fixed sleep: it waits exactly as long as needed.
    */
-  private async reloadingProducts(action: () => Promise<void>, apiPath: string): Promise<void> {
-    // Note: the Toolshop API uses the HTTP QUERY method, so we match on the URL only.
-    const response = this.page.waitForResponse(
-      (r) => new URL(r.url()).pathname === apiPath && r.request().resourceType() !== 'document',
-      { timeout: this.actionTimeout },
-    );
+  private async doAndWaitForProducts(action: () => Promise<unknown>, apiPath: string): Promise<void> {
+    const serverAnswer = this.page.waitForResponse((r) => new URL(r.url()).pathname === apiPath, {
+      timeout: this.actionTimeout,
+    });
     await action();
-    await (await response).finished();
-    await this.waitForStableResults();
-  }
-
-  /** Waits until the rendered result list stops changing (Angular re-render finished). */
-  private async waitForStableResults(): Promise<void> {
-    const results = this.page.locator('[data-test="product-name"], [data-test="no-results"]');
-    await results.first().waitFor({ timeout: this.actionTimeout });
-    let previous = '';
-    for (let i = 0; i < 20; i++) {
-      const current = (await results.allInnerTexts()).join('|');
-      if (current === previous) return;
-      previous = current;
-      await this.page.waitForTimeout(250);
-    }
+    await serverAnswer;
+    await this.page.waitForLoadState('networkidle', { timeout: this.actionTimeout });
   }
 }
