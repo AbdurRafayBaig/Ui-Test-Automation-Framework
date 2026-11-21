@@ -39,7 +39,7 @@ export class ToolshopHomePage extends BasePage {
   override async waitUntilLoaded(): Promise<void> {
     await this.productNames.first().waitFor({ state: 'visible', timeout: this.actionTimeout });
     await this.searchInput.waitFor({ state: 'visible', timeout: this.actionTimeout });
-    await this.page.waitForLoadState('networkidle', { timeout: this.actionTimeout });
+    await this.waitUntilListStopsChanging();
   }
 
   async search(term: string): Promise<void> {
@@ -112,7 +112,7 @@ export class ToolshopHomePage extends BasePage {
    * Toolshop gets its product list from the server. After a search, sort or filter:
    *   1. we start listening for the server's answer,
    *   2. we do the action (click / select / check),
-   *   3. we wait for the answer, then for the page to finish loading.
+   *   3. we wait for the answer, then until the new list is drawn on the page.
    * This is better than a fixed sleep: it waits exactly as long as needed.
    */
   private async doAndWaitForProducts(action: () => Promise<unknown>, apiPath: string): Promise<void> {
@@ -121,6 +121,24 @@ export class ToolshopHomePage extends BasePage {
     });
     await action();
     await serverAnswer;
-    await this.page.waitForLoadState('networkidle', { timeout: this.actionTimeout });
+    await this.waitUntilListStopsChanging();
+  }
+
+  /**
+   * After the server answers, the page needs a moment to draw the new list.
+   * We read the product names every 250 ms; when two reads are the same,
+   * the list is ready (we give up after 20 reads = 5 seconds).
+   */
+  private async waitUntilListStopsChanging(): Promise<void> {
+    const results = this.page.locator('[data-test="product-name"], [data-test="no-results"]');
+    await results.first().waitFor({ timeout: this.actionTimeout });
+
+    let previous = '';
+    for (let i = 0; i < 20; i++) {
+      const current = (await results.allInnerTexts()).join('|');
+      if (current === previous) return; // same as last time: list is ready
+      previous = current;
+      await this.page.waitForTimeout(250);
+    }
   }
 }

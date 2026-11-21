@@ -12,7 +12,7 @@
 │  src/pages/**                Page Object Model: selectors + actions │
 │     BasePage ─┬─ LoginPage, InventoryPage, CartPage, ...            │
 │               └─ HeaderComponent (component object)                 │
-│     PageManager (lazy factory, one per scenario)                    │
+│     PageManager (all page objects, one per scenario)                │
 ├───────────────────────────────┬─────────────────────────────────────┤
 │  src/data/**                  │  src/core/**                        │
 │  DataManager (registry)       │  World (per-scenario state)         │
@@ -53,7 +53,7 @@ A **new browser context per scenario** gives complete isolation (cookies, local 
 | **Page Object Model** | `src/pages/**` | Selectors live in exactly one place. When the UI changes, one class changes and the feature files and steps stay untouched. This was a project requirement and is the most common UI-automation pattern. |
 | **Component Object** | `HeaderComponent` | The cart icon and burger menu appear on several pages. Composing one component avoids copying selectors into every page. |
 | **Template Method** | `BasePage.open()` → `waitUntilLoaded()` | The navigation algorithm is shared. Each page only overrides "what does loaded mean for me". |
-| **Factory + lazy cache (Flyweight)** | `PageManager` | Steps write `this.pages.cart` and never call `new`. Pages are created only when first used and reused within the scenario. Adding a page is one getter. |
+| **Page manager** | `PageManager` | Steps write `this.pages.cart` and never call `new`. One `PageManager` is made per scenario and it creates every page object up front (cheap: a page object only defines locators). Adding a page is one property and one line in the constructor. |
 | **Strategy (via interface)** | `DataProvider` with Excel / SQLite / Redis / JSON | Every source has the same contract (`getAll`, `getByKey`), so steps can switch sources by name (`"excel"` → `"redis"`) without code changes. |
 | **Factory + Singleton** | `DataManager` | A simple `switch` creates the right provider for a source name (`excel`, `sqlite`, `redis`, `json`). Each provider is created once and reused for the whole run, so a suite that never touches Redis never connects to it. |
 | **Dependency Injection (light)** | `World` → `PageManager` → pages receive `page` and `logger` | Pages are easy to construct in isolation and never reach for globals. |

@@ -26,7 +26,7 @@ It ships with **66 scenarios against three public demo applications**:
 | Data-driven | Inline Examples tables **and** external sources resolved at run time through the `DataManager` |
 | Excel / DB / Redis | `ExcelDataProvider`, `SqliteDataProvider`, `RedisDataProvider` (+ `JsonDataProvider`), behind one interface |
 | Reporting | Allure 3: epics/features/severity from tags, nested steps, screenshots, Playwright traces, videos, per-scenario logs, environment info, history. Also Cucumber HTML, JSON and JUnit reports |
-| Design pattern | Page Object Model + component objects + a lazy `PageManager` (factory) |
+| Design pattern | Page Object Model + component objects + a `PageManager` that holds every page object |
 | GitHub | CI on every PR and every merge to `main`, nightly cross-browser matrix, report deployed to GitHub Pages, auto-merge, PR checks, Dependabot, issue/PR templates, CODEOWNERS |
 
 ## Quick start

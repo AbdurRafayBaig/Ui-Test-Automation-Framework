@@ -1,6 +1,5 @@
 import type { Page } from 'playwright';
 import type { Logger } from '../core/Logger';
-import type { BasePage } from './BasePage';
 import { CartPage } from './saucedemo/CartPage';
 import { CheckoutCompletePage, CheckoutInformationPage, CheckoutOverviewPage } from './saucedemo/CheckoutPages';
 import { InventoryPage } from './saucedemo/InventoryPage';
@@ -18,49 +17,56 @@ import { ContactPage } from './toolshop/ContactPage';
 import { ToolshopHomePage } from './toolshop/ToolshopHomePage';
 import { ToolshopProductPage } from './toolshop/ToolshopProductPage';
 
-type PageCtor<T extends BasePage> = new (page: Page, logger: Logger) => T;
-
 /**
- * Lazily creates and caches page objects for one scenario (Factory + Flyweight).
- * Step definitions write `this.pages.login.login(...)` and never call `new`.
- * To add a page: create the class, then add one getter here.
+ * Holds one object for every page, so step definitions can simply write
+ *   this.pages.login.login('standard_user', 'secret_sauce')
+ * without creating page objects themselves.
+ *
+ * A new one is made for every scenario (in the Before hook). Creating a page
+ * object is cheap: it only defines locators and does not open anything.
+ * To add a page: create its class, then add one line below.
  */
 export class PageManager {
-  private readonly cache = new Map<PageCtor<BasePage>, BasePage>();
-
-  constructor(
-    private readonly page: Page,
-    private readonly logger: Logger,
-  ) {}
-
-  private get<T extends BasePage>(ctor: PageCtor<T>): T {
-    let instance = this.cache.get(ctor);
-    if (!instance) {
-      instance = new ctor(this.page, this.logger);
-      this.cache.set(ctor, instance);
-    }
-    return instance as T;
-  }
-
   // ---- SauceDemo (e-commerce) ----
-  get login() { return this.get(LoginPage); }
-  get inventory() { return this.get(InventoryPage); }
-  get productDetails() { return this.get(ProductDetailsPage); }
-  get cart() { return this.get(CartPage); }
-  get checkoutInformation() { return this.get(CheckoutInformationPage); }
-  get checkoutOverview() { return this.get(CheckoutOverviewPage); }
-  get checkoutComplete() { return this.get(CheckoutCompletePage); }
+  readonly login: LoginPage;
+  readonly inventory: InventoryPage;
+  readonly productDetails: ProductDetailsPage;
+  readonly cart: CartPage;
+  readonly checkoutInformation: CheckoutInformationPage;
+  readonly checkoutOverview: CheckoutOverviewPage;
+  readonly checkoutComplete: CheckoutCompletePage;
 
   // ---- Toolshop (search / catalogue / contact form) ----
-  get toolshopHome() { return this.get(ToolshopHomePage); }
-  get toolshopProduct() { return this.get(ToolshopProductPage); }
-  get contact() { return this.get(ContactPage); }
+  readonly toolshopHome: ToolshopHomePage;
+  readonly toolshopProduct: ToolshopProductPage;
+  readonly contact: ContactPage;
 
   // ---- The Internet (UI widgets) ----
-  get secureLogin() { return this.get(SecureLoginPage); }
-  get checkboxes() { return this.get(CheckboxesPage); }
-  get dropdown() { return this.get(DropdownPage); }
-  get dynamicLoading() { return this.get(DynamicLoadingPage); }
-  get jsAlerts() { return this.get(JavaScriptAlertsPage); }
-  get fileUpload() { return this.get(FileUploadPage); }
+  readonly secureLogin: SecureLoginPage;
+  readonly checkboxes: CheckboxesPage;
+  readonly dropdown: DropdownPage;
+  readonly dynamicLoading: DynamicLoadingPage;
+  readonly jsAlerts: JavaScriptAlertsPage;
+  readonly fileUpload: FileUploadPage;
+
+  constructor(page: Page, logger: Logger) {
+    this.login = new LoginPage(page, logger);
+    this.inventory = new InventoryPage(page, logger);
+    this.productDetails = new ProductDetailsPage(page, logger);
+    this.cart = new CartPage(page, logger);
+    this.checkoutInformation = new CheckoutInformationPage(page, logger);
+    this.checkoutOverview = new CheckoutOverviewPage(page, logger);
+    this.checkoutComplete = new CheckoutCompletePage(page, logger);
+
+    this.toolshopHome = new ToolshopHomePage(page, logger);
+    this.toolshopProduct = new ToolshopProductPage(page, logger);
+    this.contact = new ContactPage(page, logger);
+
+    this.secureLogin = new SecureLoginPage(page, logger);
+    this.checkboxes = new CheckboxesPage(page, logger);
+    this.dropdown = new DropdownPage(page, logger);
+    this.dynamicLoading = new DynamicLoadingPage(page, logger);
+    this.jsAlerts = new JavaScriptAlertsPage(page, logger);
+    this.fileUpload = new FileUploadPage(page, logger);
+  }
 }

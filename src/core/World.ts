@@ -7,7 +7,7 @@ import { ScenarioContext } from './ScenarioContext';
 
 /**
  * Cucumber World: one instance per scenario. Holds the Playwright page/context,
- * lazily-created page objects, a scenario-scoped data store and a logger.
+ * the page objects, a scenario-scoped data store and a logger.
  */
 export class CustomWorld extends World {
   context!: BrowserContext;

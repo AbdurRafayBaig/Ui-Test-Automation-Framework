@@ -93,10 +93,11 @@ export class CartPage extends BasePage {
 }
 ```
 
-Then register it once in `src/pages/PageManager.ts`:
+Then add it once to `src/pages/PageManager.ts`:
 
 ```ts
-get cart() { return this.get(CartPage); }
+readonly cart: CartPage;                     // 1. a property
+this.cart = new CartPage(page, logger);      // 2. one line in the constructor
 ```
 
 Locator priority: `data-test` / `data-testid`, then `getByRole` / `getByLabel`, then a stable id. Avoid long CSS chains and XPath.
