@@ -99,6 +99,7 @@ Every setting can be changed through environment variables or a `.env` file (see
 | [docs/REPORTING.md](docs/REPORTING.md) | Allure integration, what each report shows, how to read it, example report |
 | [docs/GITHUB_WORKFLOW.md](docs/GITHUB_WORKFLOW.md) | Branching, PRs, reviews, issues, project board, CI/CD pipelines, branch protection |
 | [docs/TASK_BREAKDOWN.md](docs/TASK_BREAKDOWN.md) | How the project was split into tasks between the two group members |
+| [docs/VIVA_GUIDE.md](docs/VIVA_GUIDE.md) | The whole project in simple words: how a test runs, where each requirement is, likely questions and answers |
 
 An **example Allure report** is in [docs/example-report/index.html](docs/example-report/index.html). Download it and open it in a browser.
 
