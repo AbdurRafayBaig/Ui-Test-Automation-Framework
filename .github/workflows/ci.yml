@@ -102,8 +102,11 @@ jobs:
             echo "args=-p regression" >> "$GITHUB_OUTPUT"
           fi
 
+      # The Toolshop website (practicesoftwaretesting.com) shows a Cloudflare
+      # "Verify you are human" page to GitHub's servers, so its scenarios cannot
+      # run here. They are skipped in CI and run on our own machines instead.
       - name: Run tests
-        run: npx cucumber-js ${{ steps.suite.outputs.args }}
+        run: npx cucumber-js ${{ steps.suite.outputs.args }} --tags "not @toolshop"
 
       - name: Restore Allure history
         if: always()

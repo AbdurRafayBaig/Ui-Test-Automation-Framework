@@ -2,6 +2,8 @@
 # Runs nightly and on demand: every browser engine on Linux, plus Chromium on
 # Windows and macOS, plus a mobile-emulation run - proving the framework is
 # browser- and platform-agnostic.
+# Toolshop scenarios are skipped here: that website blocks GitHub's servers
+# with a Cloudflare "Verify you are human" page.
 name: Cross-browser regression
 
 on:
@@ -46,7 +48,7 @@ jobs:
       - run: npm run data:seed
       - name: Run regression (Redis uses the built-in in-memory store here)
         shell: bash
-        run: npx cucumber-js --tags "${{ matrix.tags || 'not @wip' }}"
+        run: npx cucumber-js --tags "${{ matrix.tags || 'not @wip' }}" --tags "not @toolshop"
       - name: Generate Allure report
         if: always()
         run: npx allure generate allure-results
