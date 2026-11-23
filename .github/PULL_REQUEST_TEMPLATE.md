@@ -16,12 +16,10 @@ Closes #
 
 ```bash
 # commands you ran, e.g.
-npm run typecheck
-npx cucumber-js --tags "@checkout"
+pytest -m cart
 ```
 
-- [ ] `npm run typecheck` passes
-- [ ] `npm run lint:features` passes (no undefined steps)
+- [ ] `pytest --collect-only -q` works (every feature file and test loads)
 - [ ] New/changed scenarios pass locally on at least one browser
 - [ ] Allure report checked (steps, screenshots and logs look right)
 
@@ -29,6 +27,6 @@ npx cucumber-js --tags "@checkout"
 
 - [ ] Selectors live in page objects only, never in step definitions
 - [ ] Assertions live in step definitions only, never in page objects
-- [ ] No hard-coded waits (`waitForTimeout`) were added
-- [ ] Scenarios are tagged (`@smoke` / `@regression`, `@feature:...`, `@severity:...`)
+- [ ] No fixed waits (`time.sleep` / `wait_for_timeout`) were added
+- [ ] Scenarios are tagged (`@smoke` or `@regression`, plus the feature tag)
 - [ ] Docs updated if behaviour or usage changed
