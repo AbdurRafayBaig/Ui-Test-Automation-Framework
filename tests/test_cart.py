@@ -9,11 +9,6 @@ def add_to_cart(products_page, product):
     products_page.add_to_cart(product)
 
 
-@when("I open the cart")
-def open_cart(cart_page):
-    cart_page.open()
-
-
 @when(parsers.parse('I remove "{product}" from the cart'))
 def remove_from_cart(cart_page, product):
     cart_page.remove(product)

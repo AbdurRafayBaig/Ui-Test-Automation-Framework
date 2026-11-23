@@ -1,98 +1,80 @@
-# Architecture & design decisions
+# Architecture and design decisions
 
 ## 1. Layers
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│  features/*.feature          Gherkin: business-readable behaviour   │  ← QA, BA, PO
-├─────────────────────────────────────────────────────────────────────┤
-│  src/steps/*.steps.ts        Glue: map sentences → page calls,      │
-│                              hold the assertions                    │
-├─────────────────────────────────────────────────────────────────────┤
-│  src/pages/**                Page Object Model: selectors + actions │
-│     BasePage ─┬─ LoginPage, InventoryPage, CartPage, ...            │
-│               └─ HeaderComponent (component object)                 │
-│     PageManager (all page objects, one per scenario)                │
-├───────────────────────────────┬─────────────────────────────────────┤
-│  src/data/**                  │  src/core/**                        │
-│  DataManager (registry)       │  World (per-scenario state)         │
-│   ├ ExcelDataProvider         │  hooks (lifecycle, artifacts)       │
-│   ├ SqliteDataProvider        │  BrowserManager (browser/context)   │
-│   ├ RedisDataProvider         │  Logger, ScenarioContext, expect    │
-│   └ JsonDataProvider          │                                     │
-├───────────────────────────────┴─────────────────────────────────────┤
-│  src/config/config.ts   env vars + config/environments/<env>.json   │
-├─────────────────────────────────────────────────────────────────────┤
-│  Playwright  ·  Cucumber-js  ·  Allure  ·  exceljs · node:sqlite ·  │
-│  ioredis                                                            │
-└─────────────────────────────────────────────────────────────────────┘
+features/*.feature        WHAT is tested, in plain English (Gherkin)
+        │
+tests/test_*.py           step definitions: one Python function per Gherkin line
+tests/conftest.py         steps and page fixtures shared by several features
+        │
+pages/*.py                HOW: selectors and actions of each page (Page Object Model)
+        │
+Playwright                drives the real browser
+        │
+automationexercise.com    the website under test
+
+utils/data_reader.py      test data from Excel / SQLite / Redis / JSON (used by steps)
+conftest.py               shared setup: ad blocker, test account, screenshot on failure
 ```
 
-Each layer only depends on the layers below it. Features know nothing about selectors. Page objects know nothing about Gherkin or assertions. The data layer knows nothing about browsers.
+Each layer only talks to the one below it. If the website changes a button, only the page object changes; the feature files and steps stay the same.
 
-## 2. Lifecycle of one scenario
+## 2. How one test runs
 
-```
-BeforeAll  (once per worker)  → BrowserManager.launch()           one browser per worker process
-Before     (every scenario)   → new BrowserContext (clean cookies/storage = isolated test)
-                                start tracing, new Page, World.init() → PageManager + Logger
-                                add Allure parameters (browser, env, device)
-  Given/When/Then steps        → this.pages.<page>.<action>()   → nested Allure steps + log lines
-AfterStep  (every step)       → screenshot on failure (or always with SCREENSHOT=on)
-After      (every scenario)   → stop trace (keep on failure), close context, attach video,
-                                attach scenario log
-AfterAll   (once per worker)  → close browser, close every data connection
-```
+1. `pytest` finds `tests/test_login.py`. The line `scenarios("login.feature")` turns every scenario in that feature file into a pytest test.
+2. pytest-playwright opens the browser once and gives every test a **new, clean browser context** (like a new incognito window), so tests never share cookies or logins.
+3. The autouse fixture `block_ads` blocks Google ads, so they cannot cover buttons.
+4. For each Gherkin line, pytest-bdd finds the step function with the same text and runs it. The step calls a page object, then checks the result with Playwright's `expect(...)`.
+5. If a step fails, the hook `pytest_bdd_step_error` adds a screenshot to the Allure report. Playwright also keeps a video and a trace in `test-results/`.
+6. allure-pytest-bdd writes every scenario, step, page action and log to `allure-results/`.
 
-A **new browser context per scenario** gives complete isolation (cookies, local storage, cache) at roughly 10% of the cost of launching a new browser. This is also what lets scenarios run safely in parallel.
+## 3. Design decisions
 
-## 3. Design patterns used, and why
-
-| Pattern | Where | Why |
-|---|---|---|
-| **Page Object Model** | `src/pages/**` | Selectors live in exactly one place. When the UI changes, one class changes and the feature files and steps stay untouched. This was a project requirement and is the most common UI-automation pattern. |
-| **Component Object** | `HeaderComponent` | The cart icon and burger menu appear on several pages. Composing one component avoids copying selectors into every page. |
-| **Template Method** | `BasePage.open()` → `waitUntilLoaded()` | The navigation algorithm is shared. Each page only overrides "what does loaded mean for me". |
-| **Page manager** | `PageManager` | Steps write `this.pages.cart` and never call `new`. One `PageManager` is made per scenario and it creates every page object up front (cheap: a page object only defines locators). Adding a page is one property and one line in the constructor. |
-| **Strategy (via interface)** | `DataProvider` with Excel / SQLite / Redis / JSON | Every source has the same contract (`getAll`, `getByKey`), so steps can switch sources by name (`"excel"` → `"redis"`) without code changes. |
-| **Factory + Singleton** | `DataManager` | A simple `switch` creates the right provider for a source name (`excel`, `sqlite`, `redis`, `json`). Each provider is created once and reused for the whole run, so a suite that never touches Redis never connects to it. |
-| **Dependency Injection (light)** | `World` → `PageManager` → pages receive `page` and `logger` | Pages are easy to construct in isolation and never reach for globals. |
-| **Context Object** | `ScenarioContext` | Typed, per-scenario key/value store for passing data between steps without module-level globals (which would leak between parallel scenarios). |
-| **Immutable configuration** | `config.ts` (`Object.freeze`) | One validated source of truth. A bad value (e.g. `BROWSER=safari`) fails fast with a clear message instead of halfway through a run. |
-
-### Why not Screenplay?
-Screenplay (actors, tasks, questions) scales very well for huge suites but adds a lot of abstraction. For a suite of this size, POM plus component objects is easier for new team members to learn and is what the brief asks for. The thin-step / fat-page split keeps a later migration possible.
-
-## 4. Technology decisions
-
-| Decision | Alternatives | Reasoning |
-|---|---|---|
-| **Playwright** | Selenium, Cypress | Required by the brief. One API for Chromium, Firefox and WebKit. Auto-waiting removes most flakiness. Built-in tracing, video and device emulation. |
-| **Cucumber-js** with Playwright as a library (not `@playwright/test`) | playwright-bdd, SpecFlow | Cucumber is the reference Gherkin implementation: Scenario Outline, Data Tables, tag expressions, profiles, parallel workers, rerun and many formatters. Using Playwright as a library lets us control the browser lifecycle in hooks. We still use `@playwright/test`'s `expect` for its retrying, web-first assertions. |
-| **TypeScript** | JavaScript | Type-checked page objects and step signatures catch typos at compile time (`npm run typecheck` runs in CI) and give IDE autocomplete. |
-| **tsx** loader | ts-node, pre-compiling | Zero-config, very fast (esbuild) and handles modern TS without a build step. |
-| **Allure 3** (`allure` npm package) | Allure 2 (Java), Cucumber HTML | Same rich report as Allure 2 but pure Node.js, so contributors and CI need no JDK. Cucumber HTML/JSON/JUnit are produced too. |
-| **exceljs** | `xlsx` (SheetJS) | Actively maintained on npm with no known security advisories. Reads and writes styled workbooks. |
-| **`node:sqlite`** | `better-sqlite3`, `sqlite3` | Built into Node 22.13+, so no native compilation (which often fails on Windows student machines). The provider uses parameterised queries, so swapping to PostgreSQL/MySQL means changing only the driver. |
-| **ioredis + ioredis-mock fallback** | Redis required everywhere | CI uses a real Redis container. Laptops without Redis fall back to an in-memory Redis seeded from the same JSON, so the suite always runs. |
-| **JSON as the canonical data source** | Edit Excel/DB by hand | Binary files (xlsx, db) do not diff well in Git. JSON is reviewable in PRs, and `npm run data:seed` regenerates every store from it, so all sources stay consistent. |
-
-## 5. Stability measures (anti-flakiness)
-
-- No fixed sleeps. Web-first assertions (`toHaveText`, `expect.poll`) and explicit waits on state.
-- SPA updates (Toolshop) wait for the **actual API response** and then for the result list to stop changing (`waitForStableResults`).
-- Tests do not hard-code live data that can change (e.g. "first **in-stock** product" instead of a fixed product name).
-- Every scenario runs in its own browser context. No order dependencies.
-- `RETRY=1` in CI absorbs the occasional slowness of public demo sites. Retried scenarios are clearly marked in Allure.
-- Timeouts are configured per environment (`config/environments/*.json`), not scattered through the code.
-
-## 6. Extending the framework
-
-| You want to... | Do this |
+| Decision | Why |
 |---|---|
-| Add a browser | Add a case to `resolveEngine()` in `BrowserManager.ts` and to the `BrowserName` type |
-| Add an environment | Create `config/environments/<name>.json` and run with `TEST_ENV=<name>` |
-| Add an application | See "Adding a new application" in [WRITING_TESTS.md](WRITING_TESTS.md) |
-| Add a data source | Implement `DataProvider` and add one `case` for it in `DataManager` ([DATA_SOURCES.md](DATA_SOURCES.md)) |
-| Add a report | Add a formatter to `format` in `cucumber.js` |
-| Add API testing (future phase) | Add `src/api/` clients using Playwright's `request` context in the same World. Hooks, data and reporting are reused as they are |
+| **Python + pytest** | Required by the course. pytest gives us fixtures (setup code), markers (tags), parametrised tests and many plugins |
+| **pytest-bdd for Gherkin** | Lets us write tests as `.feature` files while still running them with pytest. Gherkin tags (`@smoke`) become pytest markers (`pytest -m smoke`) |
+| **Playwright** | One API for Chromium, Firefox and WebKit. It waits for elements automatically, so tests need no `sleep` |
+| **One website: Automation Exercise** | Medium difficulty, free, made for test practice, and it has everything the project asks for: login, search, a form with file upload, a cart. Stable `data-qa` attributes make selectors simple |
+| **Page Object Model** | Selectors live in one place (`pages/`). Every page extends `BasePage`, which holds the parts shared by all pages (open the page, top menu, logout) |
+| **No assertions in page objects** | Page objects only do things and return things; steps decide what is right or wrong. This keeps pages reusable |
+| **Steps shared through `tests/conftest.py`** | Steps such as "I am on the login page" are written once and used by several feature files |
+| **Test account created through the API** | The `registered_user` fixture calls the site's `/api/createAccount` once per run, so login tests do not depend on someone creating the account by hand |
+| **Re-run failed tests (`--reruns 2`)** | The free demo site is sometimes overloaded ("queue full", 503). A re-run separates a busy server from a real bug |
+| **Tests run one after another by default** | With 4 parallel browsers the site starts refusing requests. `pytest -n 2` is possible when the site is quiet |
+
+## 4. Test data
+
+All data starts in JSON (`test_data/users.json`, `test_data/search_terms.json`). `python test_data/create_test_data.py` copies it into:
+
+| Source | Where | How it is read |
+|---|---|---|
+| Excel | `test_data/test_data.xlsx`, one sheet per dataset | `openpyxl` |
+| SQLite (database) | `test_data/test_data.db`, one table per dataset | Python's built-in `sqlite3` |
+| Redis | hash `testdata:<dataset>`, one JSON record per key | `redis` package. Without `REDIS_URL`, `fakeredis` (in-memory) is used and filled from JSON |
+| JSON | `test_data/<dataset>.json` | Python's built-in `json` |
+
+`utils/data_reader.py` has one function per source and one entry point:
+
+```python
+get_record("excel", "users", "valid_user")
+# -> {"key": "valid_user", "email": "...", "password": "...", "expected": "success"}
+```
+
+`data_driven.feature` uses a `source` column, so the **same scenario** runs with data from each source. Adding a new source (for example CSV) means one new `read_csv` function and one more `if` in `get_records`.
+
+## 5. Reporting
+
+| What | Where |
+|---|---|
+| Allure report | `pytest` writes `allure-results/`; `npx allure@3.33.0 generate allure-results` builds `allure-report/` |
+| In the report | Scenarios grouped by feature, tags, every Gherkin step, the page actions inside each step (`@allure.step`), the log of each test, a screenshot of the failed step, browser and website on the front page |
+| Video and trace of failed tests | `test-results/` (`--video retain-on-failure --tracing retain-on-failure` in `pytest.ini`) |
+| Published report | The CI publishes the report of every merge to `main` on GitHub Pages |
+
+## 6. Browsers and platforms
+
+- `pytest --browser chromium | firefox | webkit` (several `--browser` options run the tests on each).
+- `pytest --device "Pixel 7"` emulates a phone screen.
+- The nightly `cross-browser.yml` workflow runs the smoke tests on Linux (all three browsers), Windows, macOS and a phone screen.

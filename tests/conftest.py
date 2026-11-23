@@ -44,6 +44,11 @@ def open_products_page(products_page):
     products_page.open()
 
 
+@when("I open the cart")
+def open_cart(cart_page):
+    cart_page.open()
+
+
 @when(parsers.parse('I search for "{keyword}"'))
 def search_for(products_page, keyword):
     products_page.search(keyword)

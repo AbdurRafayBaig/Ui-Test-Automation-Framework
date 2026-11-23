@@ -1,160 +1,94 @@
 # Web UI Test Automation Framework
 
-[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
-[![Cross-browser](https://github.com/OWNER/REPO/actions/workflows/cross-browser.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/cross-browser.yml)
-[![Allure report](https://img.shields.io/badge/Allure-latest%20report-orange)](https://OWNER.github.io/REPO/)
+[![CI](https://github.com/AbdurRafayBaig/Ui-Test-Automation-Framework/actions/workflows/ci.yml/badge.svg)](https://github.com/AbdurRafayBaig/Ui-Test-Automation-Framework/actions/workflows/ci.yml)
+[![Cross-browser](https://github.com/AbdurRafayBaig/Ui-Test-Automation-Framework/actions/workflows/cross-browser.yml/badge.svg)](https://github.com/AbdurRafayBaig/Ui-Test-Automation-Framework/actions/workflows/cross-browser.yml)
+[![Allure report](https://img.shields.io/badge/Allure-latest%20report-orange)](https://abdurrafaybaig.github.io/Ui-Test-Automation-Framework/)
 
-A BDD test automation framework for web UIs, built with **Playwright**, **Cucumber (Gherkin)**, **TypeScript** and **Allure**. Test data can come from **Excel, a SQL database (SQLite), Redis or JSON**. The code follows the **Page Object Model**.
+Automated UI tests for the demo shop **[Automation Exercise](https://automationexercise.com)**, written with **Python, Pytest, Playwright and Gherkin (pytest-bdd)**, using the **Page Object Model**, with test data from **Excel, SQLite, Redis and JSON** and an **Allure** report.
 
-It ships with **66 scenarios against three public demo applications**:
+Software Testing course, Project Phase 2. Team: **Abdur Rafay Baig** ([@AbdurRafayBaig](https://github.com/AbdurRafayBaig)) and **Ammar Ahmed** ([@ammarahmed6176](https://github.com/ammarahmed6176)).
 
-| Application | What is covered |
+## What is tested (26 tests)
+
+| Feature file | What it checks |
 |---|---|
-| [SauceDemo](https://www.saucedemo.com) (e-commerce) | login (positive / negative), catalogue sorting, product details, cart, full checkout with price verification, checkout form validation |
-| [Toolshop](https://practicesoftwaretesting.com) (catalogue) | product **search**, no-result search, sort by price, category filter, add to cart, **contact form** validation |
-| [The Internet](https://the-internet.herokuapp.com) (widgets) | form authentication, checkboxes, dropdowns, dynamic loading, JS alert / confirm / prompt dialogs, file upload |
+| `features/login.feature` | Log in with a real account, wrong email or password is rejected, log out |
+| `features/search.feature` | Search by product name and by keyword, search with no results |
+| `features/contact_us.feature` | Send the contact form with a file attached, and with different messages |
+| `features/cart.feature` | Add one or two products, check the price, remove a product |
+| `features/data_driven.feature` | Login and search with data read from Excel, SQLite, Redis and JSON |
 
----
+## Requirements and where they are met
 
-## Features at a glance
-
-| Requirement | How this framework meets it |
+| Requirement | How |
 |---|---|
-| Multiple browsers & platforms | `BROWSER=chromium\|firefox\|webkit\|chrome\|msedge`, `DEVICE="Pixel 7"` mobile emulation. CI runs on Linux, Windows and macOS |
-| Modular & scalable | Layered design: config → core → pages → steps → features. Parallel workers via `PARALLEL=n` |
-| Gherkin / BDD | Cucumber-js with `.feature` files, Background, Data Tables, **Scenario Outline + Examples** |
-| Data-driven | Inline Examples tables **and** external sources resolved at run time through the `DataManager` |
-| Excel / DB / Redis | `ExcelDataProvider`, `SqliteDataProvider`, `RedisDataProvider` (+ `JsonDataProvider`), behind one interface |
-| Reporting | Allure 3: epics/features/severity from tags, nested steps, screenshots, Playwright traces, videos, per-scenario logs, environment info, history. Also Cucumber HTML, JSON and JUnit reports |
-| Design pattern | Page Object Model + component objects + a `PageManager` that holds every page object |
-| GitHub | CI on every PR and every merge to `main`, nightly cross-browser matrix, report deployed to GitHub Pages, auto-merge, PR checks, Dependabot, issue/PR templates, CODEOWNERS |
+| Playwright, several browsers and platforms | `pytest --browser chromium / firefox / webkit`, phone screens with `--device "Pixel 7"`. CI runs on Linux, Windows and macOS |
+| Gherkin / BDD | `.feature` files in `features/`, run by **pytest-bdd** |
+| Pytest | Every test is a pytest test (`tests/test_*.py`), with fixtures, markers and plugins |
+| Scenario Outline / data-driven | `Examples:` tables, and `data_driven.feature` with Excel / SQLite / Redis / JSON |
+| Page Object Model | One class per page in `pages/`, all built on `BasePage` |
+| Allure with logs and screenshots | Gherkin steps, page actions, a log for every test, a screenshot when a step fails |
+| GitHub workflows | Tests on every pull request and every merge, report published to GitHub Pages, nightly cross-browser run |
 
 ## Quick start
 
-Prerequisites: **Node.js 22.13+** (24 recommended) and Git. Java is **not** needed, because Allure 3 is pure Node.
+You need **Python 3.11+** (and **Node.js** only to build the Allure report).
 
 ```bash
-npm ci                          # install dependencies
-npx playwright install          # download browsers (chromium, firefox, webkit)
-npm run data:seed               # build test-data/test-data.xlsx and test-data.db from JSON
-npm test                        # run the whole suite (headless chromium)
-npm run report                  # generate + open the Allure report
+python -m venv .venv
+.venv\Scripts\activate                 # Windows   (Mac/Linux: source .venv/bin/activate)
+pip install -r requirements.txt
+python -m playwright install           # downloads the browsers
+python test_data/create_test_data.py   # builds the Excel file and the SQLite database
+
+pytest                                 # run all tests
+npx allure@3.33.0 generate allure-results && npx allure@3.33.0 open allure-report
 ```
 
-## Common commands
+## Useful commands
 
 | Command | What it does |
 |---|---|
-| `npm test` | All scenarios except `@wip` |
-| `npm run test:smoke` | `@smoke` scenarios only (fast PR gate) |
-| `npm run test:regression` | `@regression` + `@smoke` |
-| `npm run test:data` | Only the data-driven (Excel / DB / Redis / JSON) scenarios |
-| `npm run test:firefox` / `test:webkit` | Same suite on another engine |
-| `npm run test:mobile` | Smoke suite emulating a Pixel 7 |
-| `npm run test:headed` | Visible browser, slowed down. Good for demos |
-| `npm run test:parallel` | 4 parallel workers |
-| `npm run test:rerun` | Re-run only the scenarios that failed last time |
-| `npx cucumber-js --tags "@cart and not @negative"` | Any tag expression |
-| `npx cucumber-js features/saucedemo/login.feature:11` | One scenario by line number |
-| `npm run report` | Generate and open the Allure report |
-| `npm run typecheck` / `npm run lint:features` | Static checks run in CI |
-
-Every setting can be changed through environment variables or a `.env` file (see [.env.example](.env.example)).
+| `pytest` | All tests (Chromium, browser hidden) |
+| `pytest -m smoke` | Only the 4 most important tests |
+| `pytest -m "cart or search"` | Tests with these tags |
+| `pytest --browser firefox` | Run on Firefox (also `webkit`) |
+| `pytest --headed --slowmo 500` | Watch the browser while it tests |
+| `pytest --device "Pixel 7"` | Run on a phone-size screen |
+| `pytest -n 2` | Run 2 tests at the same time (the site blocks more, see below) |
 
 ## Project structure
 
 ```
-├── features/                   # Gherkin specifications (what is tested)
-│   ├── saucedemo/              #   login, inventory, cart, checkout
-│   ├── toolshop/               #   search, contact form
-│   ├── theinternet/            #   forms & widgets
-│   └── data-driven/            #   Excel / SQLite / Redis / JSON driven outlines
-├── src/
-│   ├── config/config.ts        # typed config from env vars + config/environments/*.json
-│   ├── core/                   # World, hooks, BrowserManager, Logger, expect, ScenarioContext
-│   ├── pages/                  # Page Object Model (BasePage, PageManager, one class per page)
-│   ├── data/                   # DataProvider interface, DataManager, Excel/SQLite/Redis/JSON providers
-│   └── steps/                  # step definitions (glue between Gherkin and page objects)
-├── test-data/
-│   ├── json/                   # canonical test data (single source of truth)
-│   ├── test-data.xlsx          # generated by `npm run data:seed`
-│   ├── test-data.db            # generated by `npm run data:seed`
-│   └── files/                  # upload fixtures
-├── config/environments/        # qa.json, staging.json (URLs and timeouts per environment)
-├── scripts/seed-data.ts        # builds Excel, SQLite and Redis data from JSON
-├── docs/                       # full documentation (below)
-├── .github/                    # workflows, templates, CODEOWNERS, dependabot
-├── cucumber.js                 # cucumber profiles, formatters, Allure label mapping
-└── allurerc.mjs                # Allure 3 report configuration
+features/      the tests in plain English (Gherkin)
+tests/         step definitions: the Python code behind each Gherkin line
+pages/         page objects: where the buttons are + what you can do on each page
+utils/         data_reader.py: reads test data from Excel, SQLite, Redis or JSON
+test_data/     the test data (JSON, Excel, SQLite) and the script that builds it
+conftest.py    shared setup: ad blocker, test account, screenshot on failure
+pytest.ini     pytest settings (website address, report folder, reruns, tags)
+.github/       GitHub Actions workflows, issue and pull request templates
+docs/          documentation
 ```
 
 ## Documentation
 
 | Guide | Contents |
 |---|---|
-| [docs/SETUP.md](docs/SETUP.md) | Installation, configuration, environment variables, running on any browser/OS, Redis |
-| [docs/WRITING_TESTS.md](docs/WRITING_TESTS.md) | Step-by-step: writing a feature, step definitions and a page object; tags; data-driven tests |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Layers, request flow, design patterns and the reasons behind every major decision |
-| [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | Excel / SQLite / Redis / JSON providers and how to add a new one |
-| [docs/REPORTING.md](docs/REPORTING.md) | Allure integration, what each report shows, how to read it, example report |
-| [docs/GITHUB_WORKFLOW.md](docs/GITHUB_WORKFLOW.md) | Branching, PRs, reviews, issues, project board, CI/CD pipelines, branch protection |
-| [docs/TASK_BREAKDOWN.md](docs/TASK_BREAKDOWN.md) | How the project was split into tasks between the two group members |
-| [docs/VIVA_GUIDE.md](docs/VIVA_GUIDE.md) | The whole project in simple words: how a test runs, where each requirement is, likely questions and answers |
+| [docs/SETUP.md](docs/SETUP.md) | Installing and running the tests, browsers, Redis, common problems |
+| [docs/WRITING_TESTS.md](docs/WRITING_TESTS.md) | How to add a feature, its steps and a page object |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Design decisions: layers, POM, test data, reporting |
+| [docs/GITHUB_WORKFLOW.md](docs/GITHUB_WORKFLOW.md) | Branches, pull requests, reviews, issues, CI/CD |
+| [docs/TASK_BREAKDOWN.md](docs/TASK_BREAKDOWN.md) | How the work was split between the two members |
+| [docs/VIVA_GUIDE.md](docs/VIVA_GUIDE.md) | The whole project in simple words, with likely questions and answers |
 
-An **example Allure report** is in [docs/example-report/index.html](docs/example-report/index.html). Download it and open it in a browser.
+An example Allure report is in [docs/example-report/index.html](docs/example-report/index.html) (download and open it in a browser).
 
-## A taste of the framework
+## Known issues
 
-```gherkin
-@data-driven @feature:Login
-Scenario Outline: Login outcome for the "<user>" user read from <source>
-  Given I am on the SauceDemo login page
-  And I load the "users" record "<user>" from the "<source>" data source
-  When I log in with the loaded user
-  Then the login result should match the loaded user's expected outcome
-
-  @excel
-  Examples:
-    | source | user       |
-    | excel  | standard   |
-    | excel  | locked_out |
-  @redis
-  Examples:
-    | source | user    |
-    | redis  | visual  |
-```
-
-```ts
-// steps: thin glue, no selectors
-When('I log in with the loaded user', async function (this: CustomWorld) {
-  const user = this.scenario.get<DataRecord>(LOADED_RECORD);
-  await this.pages.login.login(user.username, user.password);
-});
-
-// page object: selectors + intent, no assertions
-async login(username: string, password: string) {
-  await this.step(`Log in as "${username}"`, async () => {
-    await this.fill(this.usernameInput, username, 'username field');
-    await this.fill(this.passwordInput, password, 'password field', true);
-    await this.click(this.loginButton, 'Login button');
-  });
-}
-```
-
-## Test results & known issues
-
-Local run (Windows 11, Node 24, 4 parallel workers, no retries):
-
-| Browser | Result |
-|---|---|
-| Chromium | **66 / 66 passed** |
-| Firefox | 63–66 / 66 passed |
-| WebKit | Runs in CI (Linux/macOS). WebKit on Windows needs extra system DLLs (see [SETUP](docs/SETUP.md)) |
-
-- The Firefox gaps are always in the 3 *secure login* scenarios on the-internet.herokuapp.com. That free Heroku app sometimes drops the session or answers slowly in Firefox, while the same steps pass in Chromium. This is a problem with the site under test, not the framework. CI runs with `RETRY=1`, and Allure shows the retry history.
-- Toolshop (practicesoftwaretesting.com) sits behind Cloudflare. After many back-to-back runs with several workers from one IP it slows down a lot (pages take 15–60 s), and Toolshop scenarios then time out. Its page objects already allow the longer navigation timeout (45 s). If it still happens, wait a few minutes or run with fewer workers (`PARALLEL=1`). With a short pause between runs, all Toolshop scenarios pass.
-- All three demo applications are public websites. Their data (e.g. stock levels on Toolshop) can change, so tests avoid hard-coding live values where possible.
+- **Automation Exercise is a free public demo site.** When it is busy it sometimes answers *"This website is under heavy load (queue full)"* or `503`. Every test is therefore re-run up to 2 times if it fails (`--reruns 2` in `pytest.ini`), and tests run one after another by default. Running many in parallel (`-n 4`) makes the site block us.
+- WebKit (Safari engine) does not start on some Windows machines. It runs in CI on Linux and macOS.
 
 ## License
 
-[MIT](LICENSE). Built as an educational project (Software Testing course, Project Phase 2).
+[MIT](LICENSE)
