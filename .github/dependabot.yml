@@ -1,6 +1,6 @@
 version: 2
 updates:
-  - package-ecosystem: npm
+  - package-ecosystem: pip
     directory: /
     schedule:
       interval: weekly
@@ -8,9 +8,6 @@ updates:
     commit-message:
       prefix: chore
       include: scope
-    groups:
-      test-stack:
-        patterns: ['@cucumber/*', 'playwright', '@playwright/*', 'allure*']
   - package-ecosystem: github-actions
     directory: /
     schedule:

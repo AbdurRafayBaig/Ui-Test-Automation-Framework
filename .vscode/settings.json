@@ -1,5 +1,8 @@
 {
-  "cucumber.features": ["features/**/*.feature"],
-  "cucumber.glue": ["src/steps/**/*.ts"],
+  "python.defaultInterpreterPath": ".venv/Scripts/python.exe",
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "cucumberautocomplete.steps": ["tests/**/*.py"],
+  "cucumberautocomplete.syncfeatures": "features/**/*.feature",
   "files.eol": "\n"
 }

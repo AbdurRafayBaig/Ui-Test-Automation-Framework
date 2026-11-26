@@ -1,0 +1,14 @@
+# Test framework
+pytest==9.2.0
+pytest-playwright==0.10.0   # Playwright browsers + page fixture for pytest
+pytest-bdd==9.0.1           # Gherkin (.feature files) for pytest
+pytest-xdist==3.8.0         # run tests in parallel: pytest -n 4
+pytest-rerunfailures==16.7  # re-run a failed test (the demo site sometimes answers 503)
+
+# Reporting
+allure-pytest-bdd==2.16.2   # Allure report with the Gherkin steps
+
+# Test data sources
+openpyxl==3.1.5             # Excel
+redis==8.1.0                # Redis
+fakeredis==2.40.0           # in-memory Redis when no Redis server is running

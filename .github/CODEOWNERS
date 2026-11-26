@@ -1,16 +1,16 @@
-# Every PR needs a review from a code owner (enable "Require review from Code Owners"
-# in branch protection). Replace the placeholders with your GitHub usernames.
+# Every pull request needs a review from the owner of the files it changes.
 
-*                     @MEMBER_1_GITHUB @MEMBER_2_GITHUB
+*                     @AbdurRafayBaig @ammarahmed6176
 
-# Framework core and CI - Member 1
-/src/core/            @MEMBER_1_GITHUB
-/src/config/          @MEMBER_1_GITHUB
-/src/data/            @MEMBER_1_GITHUB
-/.github/             @MEMBER_1_GITHUB
-/cucumber.js          @MEMBER_1_GITHUB
+# Framework setup, test data, reporting and CI - Abdur Rafay
+/conftest.py          @AbdurRafayBaig
+/pytest.ini           @AbdurRafayBaig
+/requirements.txt     @AbdurRafayBaig
+/utils/               @AbdurRafayBaig
+/test_data/           @AbdurRafayBaig
+/.github/             @AbdurRafayBaig
 
-# Page objects, features and steps - Member 2
-/src/pages/           @MEMBER_2_GITHUB
-/src/steps/           @MEMBER_2_GITHUB
-/features/            @MEMBER_2_GITHUB
+# Page objects, feature files and step definitions - Ammar
+/pages/               @ammarahmed6176
+/features/            @ammarahmed6176
+/tests/               @ammarahmed6176

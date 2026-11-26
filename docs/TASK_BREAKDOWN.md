@@ -1,37 +1,38 @@
 # Task breakdown (group of two)
 
-The project was split into small tasks. Each one became a GitHub issue, a branch and a pull request reviewed by the other member. Replace *Member 1* / *Member 2* with your names and GitHub handles.
+The project was split into small tasks. Each one became a GitHub issue, a branch and a pull request reviewed by the other member.
 
-| # | Task | Owner | Branch | Deliverable |
-|---|---|---|---|---|
-| 1 | Repository, Node/TypeScript project, tooling (`tsconfig`, `.editorconfig`, `.gitignore`) | Member 1 | `chore/1-project-setup` | Buildable empty project |
-| 2 | Configuration layer: environments, env vars, validation | Member 1 | `feature/2-config` | `src/config`, `config/environments` |
-| 3 | Core: World, hooks, BrowserManager (multi-browser, devices), Logger | Member 1 | `feature/3-core` | `src/core` |
-| 4 | Allure integration: labels from tags, steps, screenshots, traces, videos, logs | Member 1 | `feature/4-allure` | `cucumber.js`, `allurerc.mjs`, hooks |
-| 5 | Data layer: DataProvider interface, DataManager, Excel + SQLite providers | Member 1 | `feature/5-data-excel-sqlite` | `src/data` |
-| 6 | Redis + JSON providers, seed script | Member 1 | `feature/6-data-redis` | `RedisDataProvider`, `scripts/seed-data.ts` |
-| 7 | BasePage, PageManager, SauceDemo page objects | Member 2 | `feature/7-saucedemo-pages` | `src/pages/saucedemo` |
-| 8 | SauceDemo features + steps: login, inventory, cart, checkout | Member 2 | `feature/8-saucedemo-tests` | `features/saucedemo` |
-| 9 | Toolshop pages + search & contact-form features | Member 2 | `feature/9-toolshop` | `features/toolshop` |
-| 10 | The Internet pages + widget features (dialogs, upload, dynamic) | Member 2 | `feature/10-theinternet` | `features/theinternet` |
-| 11 | Data-driven features (Excel / SQLite / Redis / JSON outlines) | Member 1 + 2 | `feature/11-data-driven` | `features/data-driven` |
-| 12 | GitHub Actions: CI, cross-browser matrix, Pages deploy, auto-merge, PR checks | Member 1 | `ci/12-workflows` | `.github/workflows` |
-| 13 | Templates: PR, issues, CODEOWNERS, Dependabot, branch protection | Member 2 | `chore/13-github-templates` | `.github/` |
-| 14 | Documentation: README, setup, writing tests, architecture, data, reporting, GitHub | Member 2 (Member 1 reviews) | `docs/14-documentation` | `README.md`, `docs/` |
-| 15 | Stabilisation: cross-browser run, flaky-test fixes, example report | Member 1 + 2 | `fix/15-stabilisation` | green CI on all browsers |
+| Member | GitHub |
+|---|---|
+| Abdur Rafay Baig | [@AbdurRafayBaig](https://github.com/AbdurRafayBaig) |
+| Ammar Ahmed | [@ammarahmed6176](https://github.com/ammarahmed6176) |
+
+| # | Task | Owner | Deliverable |
+|---|---|---|---|
+| 1 | Project setup: Python, pytest, pytest-bdd, Playwright, settings | Abdur Rafay | `requirements.txt`, `pytest.ini` |
+| 2 | Shared setup: ad blocker, test account through the API, screenshot on failure | Abdur Rafay | `conftest.py` |
+| 3 | Test data from Excel, SQLite, Redis and JSON, and the script that builds it | Abdur Rafay | `utils/data_reader.py`, `test_data/` |
+| 4 | Allure reporting: Gherkin steps, page steps, logs, screenshots, environment | Abdur Rafay | `allure-pytest-bdd`, `conftest.py` |
+| 5 | Page objects: BasePage, login, products, cart, contact us | Ammar | `pages/` |
+| 6 | Login and search features with their steps | Ammar | `features/login.feature`, `features/search.feature`, `tests/` |
+| 7 | Contact-us form and cart features with their steps | Ammar | `features/contact_us.feature`, `features/cart.feature`, `tests/` |
+| 8 | Data-driven feature (Excel / SQLite / Redis / JSON) | Abdur Rafay + Ammar | `features/data_driven.feature` |
+| 9 | GitHub Actions: CI, Pages deploy, cross-browser, auto-merge, PR checks | Abdur Rafay | `.github/workflows/` |
+| 10 | Templates: pull request, issues, CODEOWNERS, Dependabot | Ammar | `.github/` |
+| 11 | Documentation and viva guide | Abdur Rafay (Ammar reviews) | `README.md`, `docs/` |
 
 ## Milestones
 
-| Milestone | Issues |
+| Milestone | Tasks |
 |---|---|
-| M1: Framework skeleton | 1, 2, 3 |
-| M2: Reporting & data | 4, 5, 6 |
-| M3: Test coverage | 7, 8, 9, 10, 11 |
-| M4: GitHub & docs | 12, 13, 14, 15 |
+| M1: Framework skeleton | 1, 2 |
+| M2: Reporting & data | 3, 4 |
+| M3: Test coverage | 5, 6, 7, 8 |
+| M4: GitHub & docs | 9, 10, 11 |
 
 ## Working agreement
 
-- Nobody pushes to `main` or `develop` directly. Everything goes through a PR with one approval from the other member.
-- A PR stays small: one issue, ideally under 400 changed lines.
-- The reviewer opens the Allure report artifact from the PR's CI run before approving.
-- A failing nightly run gets an issue within one working day, labelled `bug` or `flaky`.
+- Nobody pushes to `main` or `develop` directly. Everything goes through a pull request with one approval from the other member.
+- A pull request stays small: one issue.
+- The reviewer opens the Allure report from the pull request's CI run before approving.
+- A failing test on `main` gets an issue within one day, labelled `bug` or `flaky`.
