@@ -1,0 +1,5 @@
+[
+  {"key": "valid_user", "name": "Test User", "email": "uitest.demo.rafay.ammar@example.com", "password": "Test@12345", "expected": "success"},
+  {"key": "wrong_password", "name": "Test User", "email": "uitest.demo.rafay.ammar@example.com", "password": "Wrong@999", "expected": "error"},
+  {"key": "unknown_email", "name": "Nobody", "email": "nobody.unknown.user@example.com", "password": "Test@12345", "expected": "error"}
+]

@@ -6,7 +6,7 @@ body:
     id: scenario
     attributes:
       label: Scenario or component
-      placeholder: features/saucedemo/checkout.feature:16 - "Complete a purchase end to end"
+      placeholder: features/cart.feature - "Add a product to the cart"
     validations:
       required: true
   - type: dropdown

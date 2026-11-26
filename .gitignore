@@ -1,16 +1,16 @@
-# dependencies
-node_modules/
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
 
-# test output (regenerated on every run)
+# Test output (made again on every run)
 allure-results/
 allure-report/
-allure-history/
-reports/
 test-results/
 
-# local configuration
+# Local settings
 .env
-*.local.json
 
 # OS / editor
 .DS_Store
@@ -20,12 +20,10 @@ Thumbs.db
 !.vscode/settings.json
 .idea/
 
-# logs
-*.log
-npm-debug.log*
+# Old Node.js files from before the move to Python
+node_modules/
+reports/
+allure-history/
 
-# SQLite journal files
-test-data/*.db-journal
-
-# course material
+# Course material
 *.pdf

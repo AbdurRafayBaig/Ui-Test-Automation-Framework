@@ -5,9 +5,8 @@
 3. Follow [docs/WRITING_TESTS.md](docs/WRITING_TESTS.md): feature, then steps, then page object.
 4. Before pushing:
    ```bash
-   npm run typecheck
-   npm run lint:features
-   npx cucumber-js --tags "<your tags>"
+   pytest --collect-only -q     # every feature file and test loads
+   pytest -m <your tag>         # your tests pass
    ```
 5. Open a PR into `develop` with a Conventional-Commit title (`test(cart): ...`) and `Closes #<issue>` in the body.
 6. Get one approval and green checks, then squash & merge (or add the `automerge` label).
