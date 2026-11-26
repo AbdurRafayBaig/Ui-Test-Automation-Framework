@@ -1,7 +1,8 @@
 {
   "recommendations": [
-    "CucumberOpen.cucumber-official",
+    "ms-python.python",
     "ms-playwright.playwright",
+    "alexkrechik.cucumberautocomplete",
     "EditorConfig.EditorConfig"
   ]
 }

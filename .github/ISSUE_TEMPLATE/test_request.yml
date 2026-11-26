@@ -6,7 +6,7 @@ body:
     id: app
     attributes:
       label: Application / area
-      placeholder: SauceDemo - checkout
+      placeholder: Cart - change the quantity of a product
     validations:
       required: true
   - type: textarea
