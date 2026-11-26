@@ -1,24 +1,21 @@
-# Cross-browser / cross-platform regression.
-# Runs nightly and on demand: every browser engine on Linux, plus Chromium on
-# Windows and macOS, plus a mobile-emulation run - proving the framework is
-# browser- and platform-agnostic.
-name: Cross-browser regression
+# Runs every night (and by hand from the Actions tab): the smoke tests on
+# every browser and on Linux, Windows and macOS, plus a mobile phone screen.
+# This shows the framework works on many browsers and platforms.
+name: Cross-browser
 
 on:
   schedule:
     - cron: '0 2 * * *' # every night at 02:00 UTC
   workflow_dispatch:
-  release:
-    types: [published]
 
 permissions:
   contents: read
 
 jobs:
-  matrix:
-    name: ${{ matrix.browser }} on ${{ matrix.os }}${{ matrix.device && format(' ({0})', matrix.device) || '' }}
+  smoke:
+    name: ${{ matrix.browser }} on ${{ matrix.os }}${{ matrix.device && ' (mobile)' || '' }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -28,28 +25,27 @@ jobs:
           - { os: ubuntu-latest, browser: webkit }
           - { os: windows-latest, browser: chromium }
           - { os: macos-latest, browser: webkit }
-          - { os: ubuntu-latest, browser: chromium, device: 'Pixel 7', tags: '@smoke and @saucedemo' }
-    env:
-      BROWSER: ${{ matrix.browser }}
-      DEVICE: ${{ matrix.device }}
-      PARALLEL: '3'
-      RETRY: '1'
-      HEADLESS: 'true'
+          - { os: ubuntu-latest, browser: chromium, device: 'Pixel 7' }
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-python@v5
         with:
-          node-version: '24'
-          cache: npm
-      - run: npm ci
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
-      - run: npm run data:seed
-      - name: Run regression (Redis uses the built-in in-memory store here)
+          python-version: '3.11'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python -m playwright install --with-deps ${{ matrix.browser }}
+      - run: python test_data/create_test_data.py
+      - name: Run the smoke tests
         shell: bash
-        run: npx cucumber-js --tags "${{ matrix.tags || 'not @wip' }}"
-      - name: Generate Allure report
+        run: |
+          if [ -n "${{ matrix.device }}" ]; then
+            pytest -m smoke --browser ${{ matrix.browser }} --device "${{ matrix.device }}"
+          else
+            pytest -m smoke --browser ${{ matrix.browser }}
+          fi
+      - name: Build the Allure report
         if: always()
-        run: npx allure generate allure-results
+        run: npx -y allure@3.33.0 generate allure-results
       - uses: actions/upload-artifact@v4
         if: always()
         with:

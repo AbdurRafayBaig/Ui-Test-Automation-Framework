@@ -1,7 +1,0 @@
-[
-  { "key": "valid_us", "first_name": "John", "last_name": "Doe", "postal_code": "10001", "error_message": "" },
-  { "key": "valid_pk", "first_name": "Ayesha", "last_name": "Khan", "postal_code": "54000", "error_message": "" },
-  { "key": "missing_first_name", "first_name": "", "last_name": "Doe", "postal_code": "10001", "error_message": "Error: First Name is required" },
-  { "key": "missing_last_name", "first_name": "John", "last_name": "", "postal_code": "10001", "error_message": "Error: Last Name is required" },
-  { "key": "missing_postal_code", "first_name": "John", "last_name": "Doe", "postal_code": "", "error_message": "Error: Postal Code is required" }
-]

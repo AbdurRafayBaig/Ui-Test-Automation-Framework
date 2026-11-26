@@ -1,0 +1,6 @@
+[
+  {"key": "dress", "term": "dress", "min_results": "5", "expected_product": "Stylish Dress"},
+  {"key": "jeans", "term": "jeans", "min_results": "3", "expected_product": "Soft Stretch Jeans"},
+  {"key": "top", "term": "top", "min_results": "5", "expected_product": "Winter Top"},
+  {"key": "saree", "term": "saree", "min_results": "3", "expected_product": "Rust Red Linen Saree"}
+]
