@@ -44,6 +44,13 @@ def open_products_page(products_page):
     products_page.open()
 
 
+@given("the test account exists")
+def test_account_exists(registered_user):
+    # registered_user (in the main conftest.py) creates the account once through the website's API
+    pass
+
+
+@given("I have opened the cart")
 @when("I open the cart")
 def open_cart(cart_page):
     cart_page.open()

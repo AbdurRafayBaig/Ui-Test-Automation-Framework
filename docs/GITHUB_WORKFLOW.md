@@ -78,7 +78,7 @@ Examples: `feat(data): read users from Redis`, `test(search): add no-results sce
 | Template | Use for |
 |---|---|
 | **New test scenario** | Requests coverage for a flow. Contains a Gherkin draft and acceptance checklist |
-| **Bug / failing test** | A failing or flaky test, an app bug, or a framework bug. Attach the Allure screenshot/trace |
+| **Bug / failing test** | A failing or flaky test, an app bug, or a framework bug. Attach the Allure screenshot |
 | **Framework enhancement** | New capability (browser, data source, reporter, ...) |
 
 Practices:

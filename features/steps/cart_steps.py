@@ -1,9 +1,10 @@
 from playwright.sync_api import expect
-from pytest_bdd import parsers, scenarios, then, when
+from pytest_bdd import given, parsers, scenarios, then, when
 
 scenarios("cart.feature")
 
 
+@given(parsers.parse('I have added "{product}" to the cart'))
 @when(parsers.parse('I add "{product}" to the cart'))
 def add_to_cart(products_page, product):
     products_page.add_to_cart(product)
