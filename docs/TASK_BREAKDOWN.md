@@ -11,12 +11,12 @@ The project was split into small tasks. Each one became a GitHub issue, a branch
 |---|---|---|---|
 | 1 | Project setup: Python, pytest, pytest-bdd, Playwright, settings | Abdur Rafay | `requirements.txt`, `pytest.ini` |
 | 2 | Shared setup: ad blocker, test account through the API, screenshot on failure | Abdur Rafay | `conftest.py` |
-| 3 | Test data from Excel, SQLite, Redis and JSON, and the script that builds it | Abdur Rafay | `utils/data_reader.py`, `test_data/` |
+| 3 | Test data from Excel, SQLite and Redis, and the script that builds it | Abdur Rafay | `utils/data_reader.py`, `test_data/` |
 | 4 | Allure reporting: Gherkin steps, page steps, logs, screenshots, environment | Abdur Rafay | `allure-pytest-bdd`, `conftest.py` |
 | 5 | Page objects: BasePage, login, products, cart, contact us | Ammar | `pages/` |
-| 6 | Login and search features with their steps | Ammar | `features/login.feature`, `features/search.feature`, `tests/` |
-| 7 | Contact-us form and cart features with their steps | Ammar | `features/contact_us.feature`, `features/cart.feature`, `tests/` |
-| 8 | Data-driven feature (Excel / SQLite / Redis / JSON) | Abdur Rafay + Ammar | `features/data_driven.feature` |
+| 6 | Login and search features with their steps | Ammar | `features/login.feature`, `features/search.feature`, `features/steps/` |
+| 7 | Contact-us form and cart features with their steps | Ammar | `features/contact_us.feature`, `features/cart.feature`, `features/steps/` |
+| 8 | Data-driven feature (Excel / SQLite / Redis) | Abdur Rafay + Ammar | `features/data_driven.feature` |
 | 9 | GitHub Actions: CI, Pages deploy, cross-browser, auto-merge, PR checks | Abdur Rafay | `.github/workflows/` |
 | 10 | Templates: pull request, issues, CODEOWNERS, Dependabot | Ammar | `.github/` |
 | 11 | Documentation and viva guide | Abdur Rafay (Ammar reviews) | `README.md`, `docs/` |

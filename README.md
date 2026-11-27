@@ -4,11 +4,11 @@
 [![Cross-browser](https://github.com/AbdurRafayBaig/Ui-Test-Automation-Framework/actions/workflows/cross-browser.yml/badge.svg)](https://github.com/AbdurRafayBaig/Ui-Test-Automation-Framework/actions/workflows/cross-browser.yml)
 [![Allure report](https://img.shields.io/badge/Allure-latest%20report-orange)](https://abdurrafaybaig.github.io/Ui-Test-Automation-Framework/)
 
-Automated UI tests for the demo shop **[Automation Exercise](https://automationexercise.com)**, written with **Python, Pytest, Playwright and Gherkin (pytest-bdd)**, using the **Page Object Model**, with test data from **Excel, SQLite, Redis and JSON** and an **Allure** report.
+Automated UI tests for the demo shop **[Automation Exercise](https://automationexercise.com)**, written with **Python, Pytest, Playwright and Gherkin (pytest-bdd)**, using the **Page Object Model**, with test data from **Excel, a database (SQLite) and Redis** and an **Allure** report.
 
 Software Testing course, Project Phase 2. Team: **Abdur Rafay Baig** ([@AbdurRafayBaig](https://github.com/AbdurRafayBaig)) and **Ammar Ahmed** ([@ammarahmed6176](https://github.com/ammarahmed6176)).
 
-## What is tested (26 tests)
+## What is tested (24 tests)
 
 | Feature file | What it checks |
 |---|---|
@@ -16,7 +16,7 @@ Software Testing course, Project Phase 2. Team: **Abdur Rafay Baig** ([@AbdurRaf
 | `features/search.feature` | Search by product name and by keyword, search with no results |
 | `features/contact_us.feature` | Send the contact form with a file attached, and with different messages |
 | `features/cart.feature` | Add one or two products, check the price, remove a product |
-| `features/data_driven.feature` | Login and search with data read from Excel, SQLite, Redis and JSON |
+| `features/data_driven.feature` | Login and search with data read from Excel, SQLite and Redis |
 
 ## Requirements and where they are met
 
@@ -24,8 +24,8 @@ Software Testing course, Project Phase 2. Team: **Abdur Rafay Baig** ([@AbdurRaf
 |---|---|
 | Playwright, several browsers and platforms | `pytest --browser chromium / firefox / webkit`, phone screens with `--device "Pixel 7"`. CI runs on Linux, Windows and macOS |
 | Gherkin / BDD | `.feature` files in `features/`, run by **pytest-bdd** |
-| Pytest | Every test is a pytest test (`tests/test_*.py`), with fixtures, markers and plugins |
-| Scenario Outline / data-driven | `Examples:` tables, and `data_driven.feature` with Excel / SQLite / Redis / JSON |
+| Pytest | Every scenario runs as a pytest test (steps in `features/steps/*_steps.py`), with fixtures and markers |
+| Scenario Outline / data-driven | `Examples:` tables, and `data_driven.feature` with Excel / SQLite / Redis |
 | Page Object Model | One class per page in `pages/`, all built on `BasePage` |
 | Allure with logs and screenshots | Gherkin steps, page actions, a log for every test, a screenshot when a step fails |
 | GitHub workflows | Tests on every pull request and every merge, report published to GitHub Pages, nightly cross-browser run |
@@ -55,15 +55,14 @@ npx allure@3.33.0 generate allure-results && npx allure@3.33.0 open allure-repor
 | `pytest --browser firefox` | Run on Firefox (also `webkit`) |
 | `pytest --headed --slowmo 500` | Watch the browser while it tests |
 | `pytest --device "Pixel 7"` | Run on a phone-size screen |
-| `pytest -n 2` | Run 2 tests at the same time (the site blocks more, see below) |
 
 ## Project structure
 
 ```
 features/      the tests in plain English (Gherkin)
-tests/         step definitions: the Python code behind each Gherkin line
+features/steps/  step definitions: the Python code behind each Gherkin line
 pages/         page objects: where the buttons are + what you can do on each page
-utils/         data_reader.py: reads test data from Excel, SQLite, Redis or JSON
+utils/         data_reader.py: reads test data from Excel, SQLite or Redis
 test_data/     the test data (JSON, Excel, SQLite) and the script that builds it
 conftest.py    shared setup: ad blocker, test account, screenshot on failure
 pytest.ini     pytest settings (website address, report folder, reruns, tags)
@@ -86,7 +85,7 @@ An example Allure report is in [docs/example-report/index.html](docs/example-rep
 
 ## Known issues
 
-- **Automation Exercise is a free public demo site.** When it is busy it sometimes answers *"This website is under heavy load (queue full)"* or `503`. Every test is therefore re-run up to 2 times if it fails (`--reruns 2` in `pytest.ini`), and tests run one after another by default. Running many in parallel (`-n 4`) makes the site block us.
+- **Automation Exercise is a free public demo site.** When it is busy it sometimes answers *"This website is under heavy load (queue full)"* or `503`. Every test is therefore re-run up to 2 times if it fails (`--reruns 2` in `pytest.ini`), and tests run one after another.
 - WebKit (Safari engine) does not start on some Windows machines. It runs in CI on Linux and macOS.
 
 ## License

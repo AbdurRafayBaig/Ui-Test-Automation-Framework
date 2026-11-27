@@ -1,13 +1,14 @@
 @data_driven
-Feature: Tests that read their data from Excel, a database, Redis and JSON
-  The same test runs once for every row in the Examples table.
+Feature: Tests that read their data from Excel, a database (SQLite) and Redis
+  The same scenario runs once for every row of the Examples table.
   The "source" column says where the test data is read from.
 
   @regression
   Scenario Outline: Log in as "<user>" with data from <source>
-    Given I am on the login page
-    When I read the user "<user>" from <source>
-    And I log in with that user
+    Given the test account exists
+    And I am on the login page
+    And I have read the user "<user>" from <source>
+    When I log in with that user
     Then the login should end with the user's expected result
 
     Examples:
@@ -18,13 +19,12 @@ Feature: Tests that read their data from Excel, a database, Redis and JSON
       | sqlite | unknown_email  |
       | redis  | valid_user     |
       | redis  | wrong_password |
-      | json   | unknown_email  |
 
   @regression
   Scenario Outline: Search for "<term>" with data from <source>
     Given I am on the products page
-    When I read the search term "<term>" from <source>
-    And I search for that term
+    And I have read the search term "<term>" from <source>
+    When I search for that term
     Then the results should include the expected product of that term
 
     Examples:
@@ -32,4 +32,3 @@ Feature: Tests that read their data from Excel, a database, Redis and JSON
       | excel  | dress |
       | sqlite | jeans |
       | redis  | top   |
-      | json   | saree |

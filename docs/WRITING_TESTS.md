@@ -5,7 +5,7 @@ Every test is made of three parts. Example: **"change the quantity on the produc
 | Part | Folder | What goes in it |
 |---|---|---|
 | 1. Feature file | `features/` | The test in plain English (Gherkin) |
-| 2. Step definitions | `tests/` | Python code for each English line |
+| 2. Step definitions | `features/steps/` | Python code for each English line |
 | 3. Page object | `pages/` | Where the buttons are on the page and what you can do there |
 
 ## 1. The feature file
@@ -63,7 +63,7 @@ Rules:
 ## 3. The step definitions
 
 ```python
-# tests/test_product_details.py
+# features/steps/product_details_steps.py
 import pytest
 from playwright.sync_api import expect
 from pytest_bdd import given, parsers, scenarios, then, when
@@ -96,10 +96,10 @@ def check_quantity(cart_page, product, quantity):
 Rules:
 - Steps are short: call the page object, then check with `expect(...)`.
 - `parsers.parse` takes values out of the sentence: `{product}` is text, `{quantity:d}` is a number.
-- Steps used by several feature files go in `tests/conftest.py` (for example "I am on the login page" and "I open the cart").
+- Steps used by several feature files go in `features/steps/conftest.py` (for example "I am on the login page" and "I open the cart").
 - Use Playwright's `expect(...)`: it waits until the condition is true (up to 5 seconds), so no `sleep` is needed.
 
-## 4. Test data from Excel / SQLite / Redis / JSON
+## 4. Test data from Excel / SQLite / Redis
 
 1. Add the record to the JSON file in `test_data/` (every record needs a unique `"key"`).
 2. Run `python test_data/create_test_data.py` to copy it into Excel and SQLite.

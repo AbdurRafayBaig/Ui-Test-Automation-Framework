@@ -28,7 +28,7 @@ python test_data/create_test_data.py   # builds test_data.xlsx and test_data.db 
 pytest                         # all tests
 pytest -m smoke                # the 4 most important tests
 pytest -m login                # one feature (tags: login, search, contact, cart, data_driven)
-pytest tests/test_cart.py      # one test file
+pytest features/steps/cart_steps.py   # one feature
 pytest --browser firefox       # another browser: chromium (default), firefox, webkit
 pytest --headed --slowmo 500   # watch the browser, slowed down
 pytest --device "Pixel 7"      # phone-size screen
@@ -43,11 +43,7 @@ npx allure@3.33.0 open allure-report         # opens it in the browser
 
 The report shows every scenario with its Gherkin steps, the page actions inside each step, the log of the test, and a screenshot of the step that failed.
 
-For a failed test, Playwright also keeps a **screenshot, a video and a trace** in `test-results/`. Open a trace with:
-
-```bash
-python -m playwright show-trace test-results/<test-folder>/trace.zip
-```
+For a failed test, Playwright also keeps a **screenshot** in `test-results/`.
 
 ## 5. Settings
 
@@ -58,7 +54,7 @@ All settings are in `pytest.ini`:
 | `--base-url` | The website under test (`https://automationexercise.com`) |
 | `--alluredir` | Where the Allure results go |
 | `--reruns 2` | Re-run a failed test up to 2 times (the demo site is sometimes overloaded) |
-| `--screenshot / --video / --tracing` | Keep these only for failed tests |
+| `--screenshot only-on-failure` | Keep a screenshot only for failed tests |
 | `markers` | The tags that can be used with `-m` |
 
 Environment variable: `REDIS_URL` (e.g. `redis://localhost:6379`). If it is empty, a fake in-memory Redis is used. To fill a real Redis server: `python test_data/create_test_data.py --redis`.

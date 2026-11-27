@@ -77,7 +77,7 @@ jobs:
           path: allure-report
           retention-days: 14
 
-      - name: Upload screenshots, videos and traces of failed tests
+      - name: Upload screenshots of failed tests
         if: failure()
         uses: actions/upload-artifact@v4
         with:
