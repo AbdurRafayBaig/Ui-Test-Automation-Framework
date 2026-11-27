@@ -24,7 +24,7 @@ body:
     id: what
     attributes:
       label: What happened?
-      description: Paste the error message. Attach the Allure screenshot / trace if possible.
+      description: Paste the error message. Attach the Allure screenshot if possible.
     validations:
       required: true
   - type: input

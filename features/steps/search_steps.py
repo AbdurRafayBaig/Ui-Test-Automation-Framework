@@ -1,9 +1,10 @@
 from playwright.sync_api import expect
-from pytest_bdd import parsers, scenarios, then
+from pytest_bdd import given, parsers, scenarios, then
 
 scenarios("search.feature")
 
 
+@given(parsers.parse('I can see the heading "{text}"'))
 @then(parsers.parse('I should see the heading "{text}"'))
 def see_heading(products_page, text):
     expect(products_page.heading).to_have_text(text, ignore_case=True)

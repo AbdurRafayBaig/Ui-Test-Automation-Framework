@@ -30,7 +30,7 @@ body:
     id: data
     attributes:
       label: Test data source
-      options: [Inline Examples table, Excel, SQLite, Redis, JSON]
+      options: [Inline Examples table, Excel, SQLite, Redis]
   - type: textarea
     id: acceptance
     attributes:

@@ -1,21 +1,21 @@
 from playwright.sync_api import expect
-from pytest_bdd import parsers, scenarios, then, when
+from pytest_bdd import given, parsers, scenarios, then, when
 
 from utils.data_reader import get_record
 
 scenarios("data_driven.feature")
 
 
-# ---------- Login with users read from Excel / SQLite / Redis / JSON ----------
+# ---------- Login with users read from Excel / SQLite / Redis ----------
 
-@when(parsers.parse('I read the user "{user_key}" from {source}'), target_fixture="user")
+@given(parsers.parse('I have read the user "{user_key}" from {source}'), target_fixture="user")
 def read_user(user_key, source):
     # target_fixture: the returned record is available to the next steps as "user"
     return get_record(source, "users", user_key)
 
 
 @when("I log in with that user")
-def log_in_with_user(login_page, user, registered_user):
+def log_in_with_user(login_page, user):
     login_page.login(user["email"], user["password"])
 
 
@@ -27,9 +27,9 @@ def login_result(login_page, user):
         expect(login_page.error_message).to_have_text("Your email or password is incorrect!")
 
 
-# ---------- Search with terms read from Excel / SQLite / Redis / JSON ----------
+# ---------- Search with terms read from Excel / SQLite / Redis ----------
 
-@when(parsers.parse('I read the search term "{term_key}" from {source}'), target_fixture="search")
+@given(parsers.parse('I have read the search term "{term_key}" from {source}'), target_fixture="search")
 def read_search_term(term_key, source):
     return get_record(source, "search_terms", term_key)
 
